@@ -70,11 +70,12 @@ struct ContentView: View {
                 
             Button {
                 Task {
-                    if streamMode != "webrtc" {
+                    if streamMode == "webrtc" {
+                        // Open immersive, but keep window so WebRTC preview stays visible
+                        await self.openImmersiveSpace(id: "immersiveSpace")
+                    } else {
                         await self.openImmersiveSpace(id: "immersiveSpace")
                         self.dismissWindow()
-                    } else {
-                        // In WebRTC mode, keep running in the window (WKWebView)
                     }
                 }
             } label: {

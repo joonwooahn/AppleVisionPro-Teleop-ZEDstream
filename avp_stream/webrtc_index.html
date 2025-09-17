@@ -22,7 +22,13 @@
         iceServers: [{ urls: ['stun:stun.l.google.com:19302'] }]
       });
       const video = document.getElementById('v');
-      pc.ontrack = (ev) => { video.srcObject = ev.streams[0]; };
+      pc.ontrack = (ev) => {
+        video.muted = true;           // allow autoplay without user gesture
+        video.playsInline = true;     // inline playback
+        video.autoplay = true;
+        video.srcObject = ev.streams[0];
+        setTimeout(() => { video.play().catch(()=>{}); }, 0);
+      };
       pc.addTransceiver('video', { direction: 'recvonly' });
 
       const offer = await pc.createOffer();
