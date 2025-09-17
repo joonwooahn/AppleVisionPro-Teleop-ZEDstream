@@ -10,6 +10,7 @@ struct ContentView: View {
     @State private var showVideo: Bool = false
     @State private var streamMode: String = UserDefaults.standard.string(forKey: "stream_mode") ?? "mjpeg"
     @State private var detectedIP: String = ""
+    @State private var previewReloadKey: Int = 0
     var body: some View {
         VStack(spacing: 32) {
             HStack(spacing: 28) {
@@ -43,7 +44,7 @@ struct ContentView: View {
             .padding(.top, 8)
 
             if showVideo, !serverIP.isEmpty, streamMode == "webrtc" {
-                WebRTCPreview(server: "\(serverIP):8086")
+                WebRTCPreview(server: "\(serverIP):8086", reloadKey: previewReloadKey)
                     .frame(width: 1400, height: 800)
                     .glassBackgroundEffect()
             }
@@ -52,6 +53,7 @@ struct ContentView: View {
                 Task {
                     // Activate ZED stream preview and auto-connect
                     showVideo = true
+                    previewReloadKey &+= 1
                     if !serverIP.isEmpty {
                         UserDefaults.standard.set(serverIP, forKey: "server_ip")
                     }

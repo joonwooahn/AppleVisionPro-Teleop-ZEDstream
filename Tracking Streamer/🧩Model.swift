@@ -57,8 +57,10 @@ struct H264Preview: View {
 
 struct WebRTCPreview: View {
     let server: String
+    let reloadKey: Int
     var body: some View {
         WebRTCView(server: server)
+            .id(reloadKey)
             .clipShape(.rect(cornerRadius: 16))
     }
 }
