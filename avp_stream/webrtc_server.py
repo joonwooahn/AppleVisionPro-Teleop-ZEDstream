@@ -12,6 +12,9 @@ from av import VideoFrame
 from aiortc import RTCPeerConnection, RTCSessionDescription, VideoStreamTrack
 from aiortc.contrib.media import MediaRelay
 
+# Global buffer for snapshot endpoint
+latest_bgr_frame = None
+
 
 class CameraTrack(VideoStreamTrack):
     def __init__(self, device_index: int, width: int, height: int, fps: int):
@@ -44,6 +47,10 @@ class CameraTrack(VideoStreamTrack):
             vf.pts, vf.time_base = pts, time_base
             return vf
 
+        # Save latest frame for snapshot handler (keep as BGR)
+        global latest_bgr_frame
+        latest_bgr_frame = frame.copy()
+
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         vf = VideoFrame.from_ndarray(frame, format="rgb24")
         pts, time_base = await self.next_timestamp()
@@ -53,6 +60,17 @@ class CameraTrack(VideoStreamTrack):
 
 async def index(request: web.Request) -> web.Response:
     return web.FileResponse(path=os.path.join(os.path.dirname(__file__), 'webrtc_index.html'))
+
+
+async def snapshot(request: web.Request) -> web.Response:
+    global latest_bgr_frame
+    if latest_bgr_frame is None:
+        # Return tiny black jpeg initially
+        blank = np.zeros((720, 1280, 3), dtype=np.uint8)
+        ok, buf = cv2.imencode('.jpg', blank, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+        return web.Response(body=buf.tobytes(), content_type='image/jpeg')
+    ok, buf = cv2.imencode('.jpg', latest_bgr_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+    return web.Response(body=buf.tobytes(), content_type='image/jpeg')
 
 
 async def offer(request: web.Request) -> web.Response:
@@ -93,6 +111,7 @@ def create_app(args) -> web.Application:
     app = web.Application()
     app.on_shutdown.append(on_shutdown)
     app.router.add_get('/', index)
+    app.router.add_get('/snapshot.jpg', snapshot)
     app.router.add_post('/offer', offer)
     return app
 

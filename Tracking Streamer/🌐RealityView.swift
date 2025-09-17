@@ -62,10 +62,14 @@ struct 🌐RealityView: View {
         .task { self.model.startserver() }
         .task(priority: .low) { await self.model.processReconstructionUpdates() }
         .task {
-            // Start MJPEG snapshot polling inside immersive space (only for mjpeg mode)
+            // Start snapshot polling inside immersive space for mjpeg or webrtc modes
             let mode = UserDefaults.standard.string(forKey: "stream_mode") ?? "mjpeg"
-            if mode == "mjpeg", let ip = UserDefaults.standard.string(forKey: "server_ip"), let url = URL(string: "http://\(ip):8080/snapshot.jpg") {
-                videoModel.start(url: url, fps: 10)
+            if let ip = UserDefaults.standard.string(forKey: "server_ip") {
+                if mode == "mjpeg", let url = URL(string: "http://\(ip):8080/snapshot.jpg") {
+                    videoModel.start(url: url, fps: 10)
+                } else if mode == "webrtc", let url = URL(string: "http://\(ip):8086/snapshot.jpg") {
+                    videoModel.start(url: url, fps: 10)
+                }
             }
             for await img in videoModel.$image.values {
                 guard let plane = self.videoPlaneEntity, let image = img, let cg = image.cgImage else { continue }
@@ -76,35 +80,7 @@ struct 🌐RealityView: View {
                 }
             }
         }
-        .overlay(alignment: .center) {
-            let mode = UserDefaults.standard.string(forKey: "stream_mode") ?? "mjpeg"
-            if mode == "webrtc", let ip = UserDefaults.standard.string(forKey: "server_ip") {
-                VStack {
-                    Text("WebRTC Stream")
-                        .font(.title)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.blue.opacity(0.8))
-                        .cornerRadius(8)
-                    
-                    WebRTCView(server: "\(ip):8086")
-                        .frame(width: 1024, height: 576)
-                        .background(Color.black)
-                        .cornerRadius(16)
-                        .onAppear {
-                            print("[WebRTC] Overlay appeared for server: \(ip):8086")
-                        }
-                }
-            } else {
-                // Debug: Show mode info
-                Text("Mode: \(mode)")
-                    .font(.title)
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.red.opacity(0.8))
-                    .cornerRadius(8)
-            }
-        }
+        // Removed WebRTC WKWebView overlay to avoid black covering in immersive
         // WebRTC는 WKWebView로 처리하므로 immersive 패널에서는 MJPEG만 렌더링
     }
     static let attachmentID: String = "resultLabel"
