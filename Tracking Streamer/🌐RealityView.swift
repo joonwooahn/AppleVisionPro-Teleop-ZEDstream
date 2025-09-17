@@ -63,9 +63,9 @@ struct 🌐RealityView: View {
         .task { self.model.startserver() }
         .task(priority: .low) { await self.model.processReconstructionUpdates() }
         .task {
-            // Start MJPEG snapshot polling inside immersive space (only if selected)
+            // Start MJPEG snapshot polling inside immersive space (for mjpeg and webrtc modes)
             let mode = UserDefaults.standard.string(forKey: "stream_mode") ?? "mjpeg"
-            if mode == "mjpeg", let ip = UserDefaults.standard.string(forKey: "server_ip"), let url = URL(string: "http://\(ip):8080/snapshot.jpg") {
+            if (mode == "mjpeg" || mode == "webrtc"), let ip = UserDefaults.standard.string(forKey: "server_ip"), let url = URL(string: "http://\(ip):8080/snapshot.jpg") {
                 videoModel.start(url: url, fps: 10)
             }
             for await img in videoModel.$image.values {

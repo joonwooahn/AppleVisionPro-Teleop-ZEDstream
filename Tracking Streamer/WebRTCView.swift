@@ -6,12 +6,20 @@ struct WebRTCView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
+        config.allowsInlineMediaPlayback = true
+        config.mediaTypesRequiringUserActionForPlayback = []
+        
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.isOpaque = false
         webView.backgroundColor = .clear
+        webView.scrollView.isScrollEnabled = false
+        
+        // Load the WebRTC page
         if let url = URL(string: "http://\(server)/") {
-            webView.load(URLRequest(url: url))
+            let request = URLRequest(url: url)
+            webView.load(request)
         }
+        
         return webView
     }
 
