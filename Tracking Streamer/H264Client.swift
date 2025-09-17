@@ -13,15 +13,22 @@ final class H264TCPClient: ObservableObject {
     private var buffer = Data()
 
     func start(host: String, port: UInt16) {
+        print("[H264Client] Starting connection to \(host):\(port)")
         decoder.onFrame = { [weak self] cg in
+            print("[H264Client] Received frame")
             self?.image = UIImage(cgImage: cg)
         }
         let params = NWParameters.tcp
         let conn = NWConnection(host: NWEndpoint.Host(host), port: NWEndpoint.Port(rawValue: port)!, using: params)
         self.connection = conn
         conn.stateUpdateHandler = { state in
+            print("[H264Client] Connection state: \(state)")
             switch state {
-            case .ready: self.receiveLoop()
+            case .ready: 
+                print("[H264Client] Connected, starting receive loop")
+                self.receiveLoop()
+            case .failed(let error):
+                print("[H264Client] Connection failed: \(error)")
             default: break
             }
         }
@@ -36,7 +43,13 @@ final class H264TCPClient: ObservableObject {
 
     private func receiveLoop() {
         connection?.receive(minimumIncompleteLength: 1, maximumLength: 64 * 1024) { [weak self] data, _, isComplete, error in
-            guard let self, let chunk = data, !chunk.isEmpty else { return }
+            guard let self, let chunk = data, !chunk.isEmpty else { 
+                if let error = error {
+                    print("[H264Client] Receive error: \(error)")
+                }
+                return 
+            }
+            print("[H264Client] Received \(chunk.count) bytes")
             self.buffer.append(chunk)
             self.consumeNALs()
             if isComplete == false && error == nil {
