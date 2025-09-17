@@ -71,8 +71,8 @@ struct ContentView: View {
             Button {
                 Task {
                     if streamMode == "webrtc" {
-                        // Open immersive, but keep window so WebRTC preview stays visible
-                        await self.openImmersiveSpace(id: "immersiveSpace")
+                        // In WebRTC mode, don't open immersive space - just show preview
+                        // User can view ZED stream in the preview window
                     } else {
                         await self.openImmersiveSpace(id: "immersiveSpace")
                         self.dismissWindow()
@@ -84,6 +84,7 @@ struct ContentView: View {
                     .padding(.vertical, 12)
                     .padding(.horizontal, 4)
             }
+            .disabled(streamMode == "webrtc" && showVideo == false)
             
         }
         .padding(32)

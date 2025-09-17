@@ -66,9 +66,9 @@ struct 🌐RealityView: View {
             let mode = UserDefaults.standard.string(forKey: "stream_mode") ?? "mjpeg"
             if let ip = UserDefaults.standard.string(forKey: "server_ip") {
                 if mode == "mjpeg", let url = URL(string: "http://\(ip):8080/snapshot.jpg") {
-                    videoModel.start(url: url, fps: 10)
+                    videoModel.start(url: url, fps: 15)
                 } else if mode == "webrtc", let url = URL(string: "http://\(ip):8086/snapshot.jpg") {
-                    videoModel.start(url: url, fps: 10)
+                    videoModel.start(url: url, fps: 15)
                 }
             }
             for await img in videoModel.$image.values {

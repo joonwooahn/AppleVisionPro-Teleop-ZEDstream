@@ -11,21 +11,18 @@ from aiohttp import web
 from av import VideoFrame
 from aiortc import RTCPeerConnection, RTCSessionDescription, VideoStreamTrack
 from aiortc.contrib.media import MediaRelay
+import threading
 
-# Global buffer for snapshot endpoint
+# Global capture state for snapshot/webrtc
 latest_bgr_frame = None
+_cap = None
+_capture_running = False
+_capture_thread = None
 
 
 class CameraTrack(VideoStreamTrack):
     def __init__(self, device_index: int, width: int, height: int, fps: int):
         super().__init__()
-        self.cap = cv2.VideoCapture(device_index)
-        if width:
-            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, float(width))
-        if height:
-            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, float(height))
-        if fps:
-            self.cap.set(cv2.CAP_PROP_FPS, float(fps))
         self._fps = fps if fps > 0 else 30
         self._frame_time = 1.0 / max(1, self._fps)
         self._last_ts = time.time()
@@ -38,18 +35,15 @@ class CameraTrack(VideoStreamTrack):
             await asyncio.sleep(delay)
         self._last_ts = time.time()
 
-        ok, frame = self.cap.read()
-        if not ok:
+        global latest_bgr_frame
+        frame = latest_bgr_frame
+        if frame is None:
             # Produce a simple black frame if capture fails
             black_rgb = np.zeros((720, 1280, 3), dtype=np.uint8)
             vf = VideoFrame.from_ndarray(black_rgb, format="rgb24")
             pts, time_base = await self.next_timestamp()
             vf.pts, vf.time_base = pts, time_base
             return vf
-
-        # Save latest frame for snapshot handler (keep as BGR)
-        global latest_bgr_frame
-        latest_bgr_frame = frame.copy()
 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         vf = VideoFrame.from_ndarray(frame, format="rgb24")
@@ -97,13 +91,20 @@ async def offer(request: web.Request) -> web.Response:
 
 
 async def on_shutdown(app: web.Application) -> None:
+    global _capture_running, _cap
+    _capture_running = False
+    if _cap is not None:
+        try:
+            _cap.release()
+        except Exception:
+            pass
     coros = [pc.close() for pc in pcs]
     await asyncio.gather(*coros)
     pcs.clear()
 
 
 def create_app(args) -> web.Application:
-    global relay, camera_track, pcs
+    global relay, camera_track, pcs, _cap, _capture_running, _capture_thread, latest_bgr_frame
     pcs = set()
     relay = MediaRelay()
     camera_track = CameraTrack(args.device, args.width, args.height, args.fps)
@@ -113,6 +114,29 @@ def create_app(args) -> web.Application:
     app.router.add_get('/', index)
     app.router.add_get('/snapshot.jpg', snapshot)
     app.router.add_post('/offer', offer)
+
+    # Initialize single global capture in background
+    _cap = cv2.VideoCapture(args.device)
+    if args.width:
+        _cap.set(cv2.CAP_PROP_FRAME_WIDTH, float(args.width))
+    if args.height:
+        _cap.set(cv2.CAP_PROP_FRAME_HEIGHT, float(args.height))
+    if args.fps:
+        _cap.set(cv2.CAP_PROP_FPS, float(args.fps))
+
+    def _capture_loop():
+        global latest_bgr_frame, _capture_running
+        target_dt = 1.0 / max(1, args.fps)
+        while _capture_running:
+            ok, frm = _cap.read()
+            if ok:
+                latest_bgr_frame = frm
+            time.sleep(target_dt)
+
+    _capture_running = True
+    _capture_thread = threading.Thread(target=_capture_loop, daemon=True)
+    _capture_thread.start()
+
     return app
 
 
