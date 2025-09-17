@@ -8,6 +8,13 @@
 	<string>This app tracks your hand to teleoperate a robot. </string>
 	<key>NSWorldSensingUsageDescription</key>
 	<string>This app senses your surronuding world to reconstruct a simulation.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>This app connects to a local robot camera stream.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationPreferredDefaultSceneSessionRole</key>

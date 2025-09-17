@@ -7,6 +7,9 @@ import SystemConfiguration.CaptiveNetwork
 struct ContentView: View {
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissWindow) var dismissWindow
+    @State private var serverIP: String = ""
+    @State private var showVideo: Bool = false
+    @State private var streamMode: String = UserDefaults.standard.string(forKey: "stream_mode") ?? "mjpeg"
     var body: some View {
         VStack(spacing: 32) {
             HStack(spacing: 28) {
@@ -18,6 +21,42 @@ struct ContentView: View {
             }
             Text("You're on IP address [\(getIPAddress())]")
                 .font(.largeTitle.weight(.medium))
+            HStack(alignment: .center, spacing: 12) {
+                TextField("Enter Jetson IP (for ZED stream)", text: $serverIP)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 420)
+                Picker("Mode", selection: $streamMode) {
+                    Text("MJPEG").tag("mjpeg")
+                    Text("H.264").tag("h264")
+                    Text("WebRTC").tag("webrtc")
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 220)
+                Button("Preview ZED Stream") {
+                    showVideo.toggle()
+                    if !serverIP.isEmpty {
+                        UserDefaults.standard.set(serverIP, forKey: "server_ip")
+                    }
+                    UserDefaults.standard.set(streamMode, forKey: "stream_mode")
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .font(.title3)
+            .padding(.top, 8)
+
+            if showVideo, !serverIP.isEmpty, streamMode == "mjpeg" {
+                VideoStreamView(host: serverIP, port: 8080, fps: 10)
+                    .frame(width: 1024, height: 576)
+                    .glassBackgroundEffect()
+            } else if showVideo, !serverIP.isEmpty, streamMode == "h264" {
+                H264Preview(host: serverIP, port: 5000)
+                    .frame(width: 1024, height: 576)
+                    .glassBackgroundEffect()
+            } else if showVideo, !serverIP.isEmpty, streamMode == "webrtc" {
+                WebRTCPreview(server: "\(serverIP):8086")
+                    .frame(width: 1024, height: 576)
+                    .glassBackgroundEffect()
+            }
                 
             Button {
                 Task {

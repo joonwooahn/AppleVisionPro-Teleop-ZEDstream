@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ZED WebRTC</title>
+  <style>
+    body { background: #111; color: #eee; font-family: -apple-system, system-ui; }
+    #v { width: 100%; max-width: 1280px; background: #000; }
+    #row { display: flex; gap: 8px; align-items: center; }
+    input, button, select { font-size: 16px; }
+  </style>
+  <script>
+    let pc;
+    async function start() {
+      const server = document.getElementById('server').value;
+      pc = new RTCPeerConnection({
+        iceServers: [{ urls: ['stun:stun.l.google.com:19302'] }]
+      });
+      const video = document.getElementById('v');
+      pc.ontrack = (ev) => { video.srcObject = ev.streams[0]; };
+      pc.addTransceiver('video', { direction: 'recvonly' });
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      const resp = await fetch(`http://${server}/offer`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sdp: offer.sdp, type: offer.type })
+      });
+      const answer = await resp.json();
+      await pc.setRemoteDescription(answer);
+    }
+    function stop() { if (pc) { pc.close(); pc = null; } }
+  </script>
+</head>
+<body>
+  <div id="row">
+    <input id="server" placeholder="<JETSON_IP>:8086" value="127.0.0.1:8086" />
+    <button onclick="start()">Connect</button>
+    <button onclick="stop()">Stop</button>
+  </div>
+  <video id="v" autoplay playsinline></video>
+</body>
+</html>
+
+
