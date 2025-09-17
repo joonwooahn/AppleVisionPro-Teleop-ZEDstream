@@ -13,8 +13,13 @@
   <script>
     let pc;
     function getParams() {
-      const p = new URLSearchParams(window.location.search);
-      return { server: p.get('server'), autostart: p.get('autostart') };
+      try {
+        const p = new URLSearchParams(window.location.search);
+        return { server: p.get('server'), autostart: p.get('autostart') };
+      } catch (e) {
+        // Some WebKit builds hide query params; fall back to empty
+        return { server: null, autostart: null };
+      }
     }
     async function start() {
       const server = document.getElementById('server').value;
@@ -88,28 +93,27 @@
     function stop() { if (pc) { pc.close(); pc = null; } }
     window.addEventListener('DOMContentLoaded', () => {
       const { server, autostart } = getParams();
-      if (server) document.getElementById('server').value = server;
+      // If server param is unavailable/hidden, fall back to this page's host
+      const effectiveServer = server || window.location.host;
+      document.getElementById('server').value = effectiveServer;
       
-      // Auto-start with multiple attempts
-      if (autostart === '1' && document.getElementById('server').value) {
-        console.log('[WebRTC] Auto-starting connection...');
-        document.getElementById('statusText').textContent = 'Auto-starting...';
-        
-        // Multiple retry attempts
-        setTimeout(() => start(), 1000);
-        setTimeout(() => {
-          if (!pc || pc.connectionState !== 'connected') {
-            console.log('[WebRTC] Retry attempt 1');
-            start();
-          }
-        }, 3000);
-        setTimeout(() => {
-          if (!pc || pc.connectionState !== 'connected') {
-            console.log('[WebRTC] Retry attempt 2');
-            start();
-          }
-        }, 6000);
-      }
+      console.log('[WebRTC] Auto-starting with server:', effectiveServer);
+      document.getElementById('statusText').textContent = 'Auto-starting...';
+      
+      // Multiple retry attempts regardless of query params
+      setTimeout(() => start(), 800);
+      setTimeout(() => {
+        if (!pc || pc.connectionState !== 'connected') {
+          console.log('[WebRTC] Retry attempt 1');
+          start();
+        }
+      }, 3000);
+      setTimeout(() => {
+        if (!pc || pc.connectionState !== 'connected') {
+          console.log('[WebRTC] Retry attempt 2');
+          start();
+        }
+      }, 6000);
     });
   </script>
 </head>

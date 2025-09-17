@@ -111,7 +111,15 @@ async def offer(request: web.Request) -> web.Response:
 
     answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
-    print("[WebRTC] Created and set local answer")
+    print("[WebRTC] Created and set local answer; waiting for ICE gathering to complete...")
+
+    # Wait for ICE gathering to complete so that candidates are included in SDP
+    async def _wait_ice_complete() -> None:
+        while pc.iceGatheringState != "complete":
+            await asyncio.sleep(0.05)
+
+    await _wait_ice_complete()
+    print("[WebRTC] ICE gathering complete; returning answer")
     return web.json_response({"sdp": pc.localDescription.sdp, "type": pc.localDescription.type})
 
 
