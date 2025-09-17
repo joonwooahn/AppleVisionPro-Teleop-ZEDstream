@@ -4,6 +4,7 @@ import json
 import os
 import time
 from typing import Optional
+import numpy as np
 
 import cv2
 from aiohttp import web
@@ -36,19 +37,17 @@ class CameraTrack(VideoStreamTrack):
 
         ok, frame = self.cap.read()
         if not ok:
-            # black frame fallback
-            black = VideoFrame.from_ndarray(
-                (0 * (255)).astype('uint8') if False else cv2.cvtColor(
-                    cv2.resize(cv2.imread(os.devnull) if False else (255 * (cv2.UMat(1, 1, cv2.CV_8UC3).get())).get(), (16, 16)),
-                    cv2.COLOR_BGR2RGB
-                )
-            )
-            black.pts, black.time_base = self.next_timestamp()
-            return black
+            # Produce a simple black frame if capture fails
+            black_rgb = np.zeros((720, 1280, 3), dtype=np.uint8)
+            vf = VideoFrame.from_ndarray(black_rgb, format="rgb24")
+            pts, time_base = await self.next_timestamp()
+            vf.pts, vf.time_base = pts, time_base
+            return vf
 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         vf = VideoFrame.from_ndarray(frame, format="rgb24")
-        vf.pts, vf.time_base = self.next_timestamp()
+        pts, time_base = await self.next_timestamp()
+        vf.pts, vf.time_base = pts, time_base
         return vf
 
 

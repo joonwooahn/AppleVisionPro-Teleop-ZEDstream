@@ -12,6 +12,10 @@
   </style>
   <script>
     let pc;
+    function getParams() {
+      const p = new URLSearchParams(window.location.search);
+      return { server: p.get('server'), autostart: p.get('autostart') };
+    }
     async function start() {
       const server = document.getElementById('server').value;
       pc = new RTCPeerConnection({
@@ -31,11 +35,16 @@
       await pc.setRemoteDescription(answer);
     }
     function stop() { if (pc) { pc.close(); pc = null; } }
+    window.addEventListener('DOMContentLoaded', () => {
+      const { server, autostart } = getParams();
+      if (server) document.getElementById('server').value = server;
+      if (autostart === '1' && document.getElementById('server').value) start();
+    });
   </script>
 </head>
 <body>
   <div id="row">
-    <input id="server" placeholder="<JETSON_IP>:8086" value="127.0.0.1:8086" />
+    <input id="server" placeholder="<JETSON_IP>:8086" value="172.30.1.60:8086" />
     <button onclick="start()">Connect</button>
     <button onclick="stop()">Stop</button>
   </div>

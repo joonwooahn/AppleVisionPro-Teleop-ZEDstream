@@ -14,8 +14,8 @@ struct WebRTCView: UIViewRepresentable {
         webView.backgroundColor = .clear
         webView.scrollView.isScrollEnabled = false
         
-        // Load the WebRTC page
-        if let url = URL(string: "http://\(server)/") {
+        // Load the WebRTC page with autostart
+        if let url = URL(string: "http://\(server)/?server=\(server)&autostart=1") {
             let request = URLRequest(url: url)
             webView.load(request)
         }

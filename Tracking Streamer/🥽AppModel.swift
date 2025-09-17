@@ -40,6 +40,9 @@ class 🥽AppModel: ObservableObject {
     private let worldTracking = WorldTrackingProvider()
     private let sceneReconstruction = SceneReconstructionProvider()
 
+    // Prevent duplicate gRPC server starts (port 12345 bind errors)
+    static var grpcServerStarted = false
+
 }
 
 extension 🥽AppModel {
@@ -62,6 +65,12 @@ extension 🥽AppModel {
     }
 
     func startserver() {
+        // Guard against duplicate starts
+        if Self.grpcServerStarted {
+            print("[gRPC] Server already running; skip start")
+            return
+        }
+        Self.grpcServerStarted = true
         Task { startServer() }
     }
     
@@ -237,9 +246,13 @@ func startServer() {
         }
         
         //         Wait on the server's `onClose` future to stop the program from exiting.
-        _ = try! server.flatMap {
-            $0.onClose
-        }.wait()
+        do {
+            _ = try server.flatMap { $0.onClose }.wait()
+        } catch {
+            print("[gRPC] Server wait failed: \(error)")
+        }
+        // Mark as stopped on exit
+        🥽AppModel.grpcServerStarted = false
     }
 }
 
