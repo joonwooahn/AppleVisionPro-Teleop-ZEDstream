@@ -18,6 +18,7 @@ final class H264AnnexBDecoder {
     }
 
     func configure(withSPS sps: Data, pps: Data) {
+        print("[VideoDecoder] Configuring with SPS: \(sps.count) bytes, PPS: \(pps.count) bytes")
         let spsPtr: UnsafePointer<UInt8> = sps.withUnsafeBytes { $0.baseAddress!.assumingMemoryBound(to: UInt8.self) }
         let ppsPtr: UnsafePointer<UInt8> = pps.withUnsafeBytes { $0.baseAddress!.assumingMemoryBound(to: UInt8.self) }
         var formatDescOut: CMFormatDescription?
@@ -29,7 +30,11 @@ final class H264AnnexBDecoder {
             nalUnitHeaderLength: 4,
             formatDescriptionOut: &formatDescOut
         )
-        guard status == noErr, let fmt = formatDescOut else { return }
+        guard status == noErr, let fmt = formatDescOut else { 
+            print("[VideoDecoder] Failed to create format description: \(status)")
+            return 
+        }
+        print("[VideoDecoder] Format description created successfully")
         self.formatDesc = fmt
 
         var callback = VTDecompressionOutputCallbackRecord(
@@ -54,12 +59,19 @@ final class H264AnnexBDecoder {
             outputCallback: &callback,
             decompressionSessionOut: &session
         )
-        guard createStatus == noErr, let s = session else { return }
+        guard createStatus == noErr, let s = session else { 
+            print("[VideoDecoder] Failed to create decompression session: \(createStatus)")
+            return 
+        }
+        print("[VideoDecoder] Decompression session created successfully")
         self.decompressionSession = s
     }
 
     func decode(nal: Data) {
-        guard let session = decompressionSession, let fmt = formatDesc else { return }
+        guard let session = decompressionSession, let fmt = formatDesc else { 
+            print("[VideoDecoder] Cannot decode - session or format not ready")
+            return 
+        }
         decodeQueue.async {
             var nalWithLength = Data()
             var length = UInt32(nal.count).bigEndian

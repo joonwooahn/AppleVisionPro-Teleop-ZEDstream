@@ -10,7 +10,7 @@ PORT="${1:-5000}"
 
 PIPELINE="v4l2src device=/dev/video0 ! video/x-raw,format=YUY2,width=4416,height=1242,framerate=15/1 ! \
     videoscale ! video/x-raw,width=1280,height=720 ! \
-    videoconvert ! x264enc bitrate=4000 tune=zerolatency ! \
+    videoconvert ! x264enc bitrate=4000 tune=zerolatency profile=baseline ! \
     h264parse ! video/x-h264,stream-format=byte-stream ! \
     tcpserversink host=0.0.0.0 port=${PORT}"
 
