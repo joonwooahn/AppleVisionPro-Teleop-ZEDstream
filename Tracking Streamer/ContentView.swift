@@ -88,28 +88,12 @@ struct ContentView: View {
     }
     
     private func detectJetsonIP() {
-        // Simple detection: assume Jetson is on same subnet with common patterns
-        let currentIP = getIPAddress()
-        if let range = currentIP.range(of: ".") {
-            let subnet = String(currentIP[..<range.upperBound])
-            
-            // Common Jetson IP patterns to try
-            let commonJetsonIPs = [
-                "\(subnet)100",  // .100
-                "\(subnet)101",  // .101
-                "\(subnet)102",  // .102
-                "\(subnet)200",  // .200
-                "\(subnet)201",  // .201
-                "\(subnet)202",  // .202
-            ]
-            
-            // Try to ping common Jetson IPs (simplified - just set the first one)
-            detectedIP = commonJetsonIPs.first ?? "192.168.1.100"
-            
-            // Auto-fill if detected
-            if serverIP.isEmpty {
-                serverIP = detectedIP
-            }
+        // Set default Jetson IP
+        detectedIP = "172.30.1.60"
+        
+        // Auto-fill if empty
+        if serverIP.isEmpty {
+            serverIP = detectedIP
         }
     }
 }
