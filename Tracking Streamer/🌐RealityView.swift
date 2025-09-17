@@ -28,14 +28,6 @@ struct 🌐RealityView: View {
             headAnchor.addChild(panel)
             content.add(headAnchor)
             self.videoPlaneEntity = panel
-            
-            // Add text for WebRTC mode
-            let textMesh = MeshResource.generateText("WebRTC Mode\nUse Preview for streaming", 
-                                                    extrusionDepth: 0.01, 
-                                                    font: .systemFont(ofSize: 0.1))
-            let textEntity = ModelEntity(mesh: textMesh, materials: [UnlitMaterial(color: .white)])
-            textEntity.position = [0, 0.3, -0.8]
-            headAnchor.addChild(textEntity)
         } attachments: {
             Attachment(id: Self.attachmentID) {
             }
