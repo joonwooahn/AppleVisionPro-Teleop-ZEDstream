@@ -10,6 +10,7 @@ import cv2
 from aiohttp import web
 from av import VideoFrame
 from aiortc import RTCPeerConnection, RTCSessionDescription, VideoStreamTrack
+from aiortc.rtcrtpsender import RTCRtpSender
 from aiortc.contrib.media import MediaRelay
 import threading
 
@@ -87,9 +88,19 @@ async def offer(request: web.Request) -> web.Response:
     await pc.setRemoteDescription(offer)
     print("[WebRTC] Set remote description")
 
+    # Prefer H.264 for Safari/visionOS compatibility
+    preferred_h264 = [c for c in RTCRtpSender.getCapabilities("video").codecs if c.mimeType.lower() == "video/h264"]
+    video_transceiver = pc.addTransceiver("video", direction="sendonly")
+    if preferred_h264:
+        try:
+            video_transceiver.setCodecPreferences(preferred_h264)
+            print(f"[WebRTC] Set H.264 codec preferences: {[c.mimeType for c in preferred_h264]}")
+        except Exception as e:
+            print(f"[WebRTC] Failed to set codec preferences: {e}")
+
     local_video = relay.subscribe(camera_track)
-    pc.addTrack(local_video)
-    print("[WebRTC] Added video track")
+    await video_transceiver.sender.replaceTrack(local_video)
+    print("[WebRTC] Added video track with H.264 preference")
 
     answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
