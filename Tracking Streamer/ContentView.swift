@@ -38,9 +38,9 @@ struct ContentView: View {
                             }
                         }
                 }
-                .font(.title3)
-                .padding(.top, 8)
             }
+            .font(.title3)
+            .padding(.top, 8)
 
             if showVideo, !serverIP.isEmpty, streamMode == "webrtc" {
                 WebRTCPreview(server: "\(serverIP):8086")
