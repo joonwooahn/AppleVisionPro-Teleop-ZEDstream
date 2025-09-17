@@ -1,7 +1,6 @@
 import SwiftUI
 import CoreLocation
 import UIKit
-import SystemConfiguration.CaptiveNetwork
 
 
 struct ContentView: View {
@@ -106,16 +105,7 @@ func getIPAddress() -> String {
 
 
 func getWiFiName() -> String? {
-  var ssid: String?
-
-  if let interfaces = CNCopySupportedInterfaces() as NSArray? {
-    for interface in interfaces {
-      if let interfaceInfo = CNCopyCurrentNetworkInfo(interface as! CFString) as NSDictionary? {
-        ssid = interfaceInfo[kCNNetworkInfoKeySSID as String] as? String
-        break
-      }
-    }
-  }
-
-  return ssid
+  // CNCopyCurrentNetworkInfo is not available in visionOS
+  // Return a placeholder or nil
+  return nil
 }
