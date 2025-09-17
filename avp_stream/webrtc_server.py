@@ -88,26 +88,10 @@ async def offer(request: web.Request) -> web.Response:
     await pc.setRemoteDescription(offer)
     print("[WebRTC] Set remote description")
 
-    # Prefer H.264 for Safari/visionOS compatibility, attach to existing remote transceiver
+    # Attach video track simply to ensure a sendonly stream for the client
     local_video = relay.subscribe(camera_track)
-    preferred_h264 = [c for c in RTCRtpSender.getCapabilities("video").codecs if c.mimeType.lower() == "video/h264"]
-    video_transceiver = None
-    for t in pc.getTransceivers():
-        if t.kind == "video":
-            video_transceiver = t
-            break
-    if video_transceiver is not None:
-        if preferred_h264:
-            try:
-                video_transceiver.setCodecPreferences(preferred_h264)
-                print(f"[WebRTC] Set H.264 codec preferences: {[c.mimeType for c in preferred_h264]}")
-            except Exception as e:
-                print(f"[WebRTC] Failed to set codec preferences: {e}")
-        await video_transceiver.sender.replaceTrack(local_video)
-        print("[WebRTC] Replaced track on existing video transceiver")
-    else:
-        pc.addTrack(local_video)
-        print("[WebRTC] Added video track (no existing transceiver)")
+    pc.addTrack(local_video)
+    print("[WebRTC] Added video track")
 
     answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)

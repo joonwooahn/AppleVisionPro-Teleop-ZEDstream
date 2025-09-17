@@ -12,6 +12,7 @@
   </style>
   <script>
     let pc;
+    let starting = false;
     function getParams() {
       try {
         const p = new URLSearchParams(window.location.search);
@@ -22,6 +23,9 @@
       }
     }
     async function start() {
+      if (starting) { console.log('[WebRTC] start() ignored: already starting'); return; }
+      if (pc && pc.connectionState === 'connected') { console.log('[WebRTC] already connected'); return; }
+      starting = true;
       const server = document.getElementById('server').value;
       document.getElementById('statusText').textContent = 'Connecting...';
       
@@ -83,13 +87,22 @@
         
         const answer = await resp.json();
         console.log('[WebRTC] Received answer from server');
-        await pc.setRemoteDescription(answer);
-        console.log('[WebRTC] Set remote description');
+        // Only set remote description when we are in the correct state
+        if (pc.signalingState === 'have-local-offer') {
+          await pc.setRemoteDescription(answer);
+          console.log('[WebRTC] Set remote description');
+        } else {
+          console.warn('[WebRTC] Skipping setRemoteDescription; signalingState=', pc.signalingState);
+        }
+        starting = false;
       } catch (error) {
         document.getElementById('statusText').textContent = `Error: ${error.message}`;
         console.error('WebRTC connection failed:', error);
+        try { if (pc) pc.close(); } catch (_) {}
+        starting = false;
       }
     }
+    function safeStart() { if (!starting && (!pc || pc.connectionState !== 'connected')) start(); }
     function stop() { if (pc) { pc.close(); pc = null; } }
     window.addEventListener('DOMContentLoaded', () => {
       const { server, autostart } = getParams();
@@ -101,18 +114,12 @@
       document.getElementById('statusText').textContent = 'Auto-starting...';
       
       // Multiple retry attempts regardless of query params
-      setTimeout(() => start(), 800);
+      setTimeout(() => safeStart(), 800);
       setTimeout(() => {
-        if (!pc || pc.connectionState !== 'connected') {
-          console.log('[WebRTC] Retry attempt 1');
-          start();
-        }
+        console.log('[WebRTC] Retry attempt 1'); safeStart();
       }, 3000);
       setTimeout(() => {
-        if (!pc || pc.connectionState !== 'connected') {
-          console.log('[WebRTC] Retry attempt 2');
-          start();
-        }
+        console.log('[WebRTC] Retry attempt 2'); safeStart();
       }, 6000);
     });
   </script>
