@@ -23,7 +23,7 @@ struct ContentView: View {
                 .font(.largeTitle.weight(.medium))
             
             // Auto-detect Jetson IP (assuming same subnet)
-            Text("Detected Jetson IP: \(detectedIP)")
+            Text("Detected Jetson Orin IP at RLWRLD: \(detectedIP)")
                 .font(.title2)
                 .foregroundColor(.secondary)
             
