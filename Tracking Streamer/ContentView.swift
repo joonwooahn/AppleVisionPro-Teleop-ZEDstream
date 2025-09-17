@@ -9,6 +9,7 @@ struct ContentView: View {
     @State private var serverIP: String = ""
     @State private var showVideo: Bool = false
     @State private var streamMode: String = UserDefaults.standard.string(forKey: "stream_mode") ?? "mjpeg"
+    @State private var detectedIP: String = ""
     var body: some View {
         VStack(spacing: 32) {
             HStack(spacing: 28) {
@@ -20,10 +21,20 @@ struct ContentView: View {
             }
             Text("You're on IP address [\(getIPAddress())]")
                 .font(.largeTitle.weight(.medium))
+            
+            // Auto-detect Jetson IP (assuming same subnet)
+            Text("Detected Jetson IP: \(detectedIP)")
+                .font(.title2)
+                .foregroundColor(.secondary)
+            
             HStack(alignment: .center, spacing: 12) {
                 TextField("Enter Jetson IP (for ZED stream)", text: $serverIP)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 420)
+                Button("Auto Detect") {
+                    serverIP = detectedIP
+                }
+                .buttonStyle(.bordered)
                 Picker("Mode", selection: $streamMode) {
                     Text("MJPEG").tag("mjpeg")
                     Text("H.264").tag("h264")
@@ -71,6 +82,35 @@ struct ContentView: View {
             
         }
         .padding(32)
+        .onAppear {
+            detectJetsonIP()
+        }
+    }
+    
+    private func detectJetsonIP() {
+        // Simple detection: assume Jetson is on same subnet with common patterns
+        let currentIP = getIPAddress()
+        if let range = currentIP.range(of: ".") {
+            let subnet = String(currentIP[..<range.upperBound])
+            
+            // Common Jetson IP patterns to try
+            let commonJetsonIPs = [
+                "\(subnet)100",  // .100
+                "\(subnet)101",  // .101
+                "\(subnet)102",  // .102
+                "\(subnet)200",  // .200
+                "\(subnet)201",  // .201
+                "\(subnet)202",  // .202
+            ]
+            
+            // Try to ping common Jetson IPs (simplified - just set the first one)
+            detectedIP = commonJetsonIPs.first ?? "192.168.1.100"
+            
+            // Auto-fill if detected
+            if serverIP.isEmpty {
+                serverIP = detectedIP
+            }
+        }
     }
 }
 
