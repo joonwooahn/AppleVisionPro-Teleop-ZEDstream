@@ -19,41 +19,48 @@ struct ContentView: View {
                     .frame(width: 1200)
                     .clipShape(.rect(cornerRadius: 24))
             }
-            Text("You're on IP address [\(getIPAddress())]")
-                .font(.largeTitle.weight(.medium))
-            
-            // Auto-detect Jetson IP (assuming same subnet)
-            HStack(alignment: .center, spacing: 12) {
-                Text("Detected Jetson Orin IP at RLWRLD: \(detectedIP)")
-                    .font(.title2)
-                    .foregroundColor(.secondary)
+            if !showVideo {
+                Text("You're on IP address [\(getIPAddress())]")
+                    .font(.largeTitle.weight(.medium))
                 
-                TextField("Enter Jetson IP", text: $serverIP)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 140)
-                    .onChange(of: serverIP) { _, newValue in
-                        if !newValue.isEmpty {
-                            UserDefaults.standard.set(newValue, forKey: "server_ip")
+                // Auto-detect Jetson IP (assuming same subnet)
+                HStack(alignment: .center, spacing: 12) {
+                    Text("Detected Jetson Orin IP at RLWRLD: ")
+                        .font(.title2)
+                        .foregroundColor(.secondary)
+                    
+                    TextField("Enter Jetson IP", text: $serverIP)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 140)
+                        .onChange(of: serverIP) { _, newValue in
+                            if !newValue.isEmpty {
+                                UserDefaults.standard.set(newValue, forKey: "server_ip")
+                            }
                         }
-                    }
+                }
             }
             .font(.title3)
             .padding(.top, 8)
 
             if showVideo, !serverIP.isEmpty, streamMode == "webrtc" {
                 WebRTCPreview(server: "\(serverIP):8086")
-                    .frame(width: 1024, height: 576)
+                    .frame(width: 1400, height: 800)
                     .glassBackgroundEffect()
             }
                 
             Button {
                 Task {
-                    // Activate ZED stream preview
+                    // Activate ZED stream preview and auto-connect
                     showVideo = true
                     if !serverIP.isEmpty {
                         UserDefaults.standard.set(serverIP, forKey: "server_ip")
                     }
                     UserDefaults.standard.set("webrtc", forKey: "stream_mode")
+                    
+                    // Hide IP-related texts after start
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        // This will be handled by the showVideo state
+                    }
                 }
             } label: {
                 Text("Start")

@@ -130,7 +130,15 @@ def create_app(args) -> web.Application:
         while _capture_running:
             ok, frm = _cap.read()
             if ok:
-                latest_bgr_frame = frm
+                # Extract right lens only (assuming stereo camera with left/right images)
+                # For ZED camera, typically the right image is the second half horizontally
+                height, width = frm.shape[:2]
+                if width > height:  # Landscape orientation
+                    # Take right half of the image
+                    right_lens = frm[:, width//2:]
+                    latest_bgr_frame = right_lens
+                else:
+                    latest_bgr_frame = frm
             time.sleep(target_dt)
 
     _capture_running = True
