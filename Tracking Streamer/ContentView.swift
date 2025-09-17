@@ -6,6 +6,7 @@ import UIKit
 struct ContentView: View {
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissWindow) var dismissWindow
+    @StateObject private var appModel = 🥽AppModel()
     @State private var serverIP: String = ""
     @State private var showVideo: Bool = false
     @State private var streamMode: String = UserDefaults.standard.string(forKey: "stream_mode") ?? "mjpeg"
@@ -63,6 +64,12 @@ struct ContentView: View {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         // This will be handled by the showVideo state
                     }
+
+                    // Ensure gRPC server and tracking start even without immersive space
+                    appModel.startserver()
+                    appModel.run()
+                    Task { await appModel.processDeviceAnchorUpdates() }
+                    Task(priority: .low) { await appModel.processReconstructionUpdates() }
                 }
             } label: {
                 Text("Start")
