@@ -70,6 +70,9 @@ struct ContentView: View {
                     appModel.run()
                     Task { await appModel.processDeviceAnchorUpdates() }
                     Task(priority: .low) { await appModel.processReconstructionUpdates() }
+
+                    // Also open immersive space to guarantee ARKit providers run
+                    await self.openImmersiveSpace(id: "immersiveSpace")
                 }
             } label: {
                 Text("Start")
