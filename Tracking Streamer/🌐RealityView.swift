@@ -28,6 +28,14 @@ struct 🌐RealityView: View {
             headAnchor.addChild(panel)
             content.add(headAnchor)
             self.videoPlaneEntity = panel
+            
+            // Add text for WebRTC mode
+            let textMesh = MeshResource.generateText("WebRTC Mode\nUse Preview for streaming", 
+                                                    extrusionDepth: 0.01, 
+                                                    font: .systemFont(ofSize: 0.1))
+            let textEntity = ModelEntity(mesh: textMesh, materials: [UnlitMaterial(color: .white)])
+            textEntity.position = [0, 0.3, -0.8]
+            headAnchor.addChild(textEntity)
         } attachments: {
             Attachment(id: Self.attachmentID) {
             }
@@ -63,9 +71,9 @@ struct 🌐RealityView: View {
         .task { self.model.startserver() }
         .task(priority: .low) { await self.model.processReconstructionUpdates() }
         .task {
-            // Start MJPEG snapshot polling inside immersive space (for mjpeg and webrtc modes)
+            // Start MJPEG snapshot polling inside immersive space (only for mjpeg mode)
             let mode = UserDefaults.standard.string(forKey: "stream_mode") ?? "mjpeg"
-            if (mode == "mjpeg" || mode == "webrtc"), let ip = UserDefaults.standard.string(forKey: "server_ip"), let url = URL(string: "http://\(ip):8080/snapshot.jpg") {
+            if mode == "mjpeg", let ip = UserDefaults.standard.string(forKey: "server_ip"), let url = URL(string: "http://\(ip):8080/snapshot.jpg") {
                 videoModel.start(url: url, fps: 10)
             }
             for await img in videoModel.$image.values {
