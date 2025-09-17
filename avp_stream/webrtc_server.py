@@ -68,25 +68,32 @@ async def snapshot(request: web.Request) -> web.Response:
 
 
 async def offer(request: web.Request) -> web.Response:
+    print(f"[WebRTC] Received offer request from {request.remote}")
     params = await request.json()
     offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"])
 
     pc = RTCPeerConnection()
     pcs.add(pc)
+    print(f"[WebRTC] Created peer connection, total connections: {len(pcs)}")
 
     @pc.on("iceconnectionstatechange")
     async def on_ice_state_change():
+        print(f"[WebRTC] ICE connection state changed to: {pc.iceConnectionState}")
         if pc.iceConnectionState in ("failed", "closed", "disconnected"):
             await pc.close()
             pcs.discard(pc)
+            print(f"[WebRTC] Peer connection closed, remaining: {len(pcs)}")
 
     await pc.setRemoteDescription(offer)
+    print("[WebRTC] Set remote description")
 
     local_video = relay.subscribe(camera_track)
     pc.addTrack(local_video)
+    print("[WebRTC] Added video track")
 
     answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
+    print("[WebRTC] Created and set local answer")
     return web.json_response({"sdp": pc.localDescription.sdp, "type": pc.localDescription.type})
 
 
@@ -139,11 +146,11 @@ def create_app(args) -> web.Application:
                     # Take right half of the image
                     right_lens = frm[:, width//2:]
                     latest_bgr_frame = right_lens
-                    print(f"[DEBUG] Extracted right lens: {right_lens.shape} from {frm.shape}")
+                    # print(f"[DEBUG] Extracted right lens: {right_lens.shape} from {frm.shape}")
                 else:
                     # Single lens or different format
                     latest_bgr_frame = frm
-                    print(f"[DEBUG] Using full frame: {frm.shape}")
+                    # print(f"[DEBUG] Using full frame: {frm.shape}")
             time.sleep(target_dt)
 
     _capture_running = True
