@@ -8,10 +8,9 @@ PORT="${1:-5000}"
 
 # H.264 Annex B bytestream over TCP (low-latency). Client parses start codes.
 
-PIPELINE="v4l2src device=/dev/video0 ! video/x-raw,format=YUY2,width=1280,height=720,framerate=30/1 ! \
-    videoconvert ! video/x-raw,format=I420 ! \
-    x264enc bitrate=6000 tune=zerolatency ! \
-    h264parse config-interval=1 ! video/x-h264,stream-format=byte-stream ! \
+PIPELINE="v4l2src device=/dev/video0 ! video/x-raw,width=640,height=480,framerate=15/1 ! \
+    videoconvert ! x264enc bitrate=2000 tune=zerolatency ! \
+    h264parse ! video/x-h264,stream-format=byte-stream ! \
     tcpserversink host=0.0.0.0 port=${PORT}"
 
 echo "Starting H.264 TCP server on port ${PORT} (Annex B bytestream)"
