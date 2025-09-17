@@ -7,7 +7,6 @@ import Foundation
 struct 🌐RealityView: View {
     var model: 🥽AppModel
     @StateObject private var videoModel = VideoStreamModel()
-    @StateObject private var h264Client = H264TCPClient()
     @State private var videoPlaneEntity: ModelEntity? = nil
     @State private var panelScale: Float = 1.0
     @State private var panelPosition: SIMD3<Float> = [0, 0, -1.0]
@@ -77,21 +76,7 @@ struct 🌐RealityView: View {
                 }
             }
         }
-        .task {
-            // Low-latency H.264 (TCP) if selected
-            let mode = UserDefaults.standard.string(forKey: "stream_mode") ?? "mjpeg"
-            if mode == "h264", let ip = UserDefaults.standard.string(forKey: "server_ip") {
-                h264Client.start(host: ip, port: 5000)
-            }
-            for await img in h264Client.$image.values {
-                guard let plane = self.videoPlaneEntity, let image = img, let cg = image.cgImage else { continue }
-                if let tex = try? TextureResource.generate(from: cg, options: .init(semantic: .color)) {
-                    var mat = UnlitMaterial()
-                    mat.color = .init(tint: .white, texture: .init(tex))
-                    plane.model?.materials = [mat]
-                }
-            }
-        }
+        // WebRTC는 WKWebView로 처리하므로 immersive 패널에서는 MJPEG만 렌더링
     }
     static let attachmentID: String = "resultLabel"
 }
