@@ -31,17 +31,11 @@ struct ContentView: View {
                 TextField("Enter Jetson IP (for ZED stream)", text: $serverIP)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 420)
-                Button("Auto Detect") {
-                    serverIP = detectedIP
-                }
-                .buttonStyle(.bordered)
                 Picker("Mode", selection: $streamMode) {
-                    Text("MJPEG").tag("mjpeg")
-                    Text("H.264").tag("h264")
                     Text("WebRTC").tag("webrtc")
                 }
                 .pickerStyle(.segmented)
-                .frame(width: 220)
+                .frame(width: 120)
                 Button("Preview ZED Stream") {
                     showVideo.toggle()
                     if !serverIP.isEmpty {
@@ -54,15 +48,7 @@ struct ContentView: View {
             .font(.title3)
             .padding(.top, 8)
 
-            if showVideo, !serverIP.isEmpty, streamMode == "mjpeg" {
-                VideoStreamView(host: serverIP, port: 8080, fps: 10)
-                    .frame(width: 1024, height: 576)
-                    .glassBackgroundEffect()
-            } else if showVideo, !serverIP.isEmpty, streamMode == "h264" {
-                H264Preview(host: serverIP, port: 5000)
-                    .frame(width: 1024, height: 576)
-                    .glassBackgroundEffect()
-            } else if showVideo, !serverIP.isEmpty, streamMode == "webrtc" {
+            if showVideo, !serverIP.isEmpty, streamMode == "webrtc" {
                 WebRTCPreview(server: "\(serverIP):8086")
                     .frame(width: 1024, height: 576)
                     .glassBackgroundEffect()
@@ -70,13 +56,8 @@ struct ContentView: View {
                 
             Button {
                 Task {
-                    if streamMode == "webrtc" {
-                        // In WebRTC mode, don't open immersive space - just show preview
-                        // User can view ZED stream in the preview window
-                    } else {
-                        await self.openImmersiveSpace(id: "immersiveSpace")
-                        self.dismissWindow()
-                    }
+                    // WebRTC mode: don't open immersive space - just show preview
+                    // User can view ZED stream in the preview window
                 }
             } label: {
                 Text("Start")
@@ -84,7 +65,7 @@ struct ContentView: View {
                     .padding(.vertical, 12)
                     .padding(.horizontal, 4)
             }
-            .disabled(streamMode == "webrtc" && showVideo == false)
+            .disabled(showVideo == false)
             
         }
         .padding(32)
