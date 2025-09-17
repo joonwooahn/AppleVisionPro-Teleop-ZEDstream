@@ -2,6 +2,7 @@ import SwiftUI
 import RealityKit
 import ARKit
 import UIKit
+import Foundation
 
 struct 🌐RealityView: View {
     var model: 🥽AppModel
@@ -68,7 +69,7 @@ struct 🌐RealityView: View {
                 videoModel.start(url: url, fps: 10)
             }
             for await img in videoModel.$image.values {
-                guard let plane = self.videoPlaneEntity, let cg = img?.cgImage else { continue }
+                guard let plane = self.videoPlaneEntity, let image = img, let cg = image.cgImage else { continue }
                 if let tex = try? TextureResource.generate(from: cg, options: .init(semantic: .color)) {
                     var mat = UnlitMaterial()
                     mat.color = .init(tint: .white, texture: .init(tex))
@@ -83,7 +84,7 @@ struct 🌐RealityView: View {
                 h264Client.start(host: ip, port: 5000)
             }
             for await img in h264Client.$image.values {
-                guard let plane = self.videoPlaneEntity, let cg = img.cgImage else { continue }
+                guard let plane = self.videoPlaneEntity, let image = img, let cg = image.cgImage else { continue }
                 if let tex = try? TextureResource.generate(from: cg, options: .init(semantic: .color)) {
                     var mat = UnlitMaterial()
                     mat.color = .init(tint: .white, texture: .init(tex))
