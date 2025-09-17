@@ -76,6 +76,19 @@ struct 🌐RealityView: View {
                 }
             }
         }
+        .overlay(
+            // WebRTC overlay for immersive mode
+            Group {
+                let mode = UserDefaults.standard.string(forKey: "stream_mode") ?? "mjpeg"
+                if mode == "webrtc", let ip = UserDefaults.standard.string(forKey: "server_ip") {
+                    WebRTCView(server: "\(ip):8086")
+                        .frame(width: 1024, height: 576)
+                        .background(Color.black.opacity(0.8))
+                        .cornerRadius(16)
+                        .position(x: 512, y: 288) // Center of screen
+                }
+            }
+        )
         // WebRTC는 WKWebView로 처리하므로 immersive 패널에서는 MJPEG만 렌더링
     }
     static let attachmentID: String = "resultLabel"
