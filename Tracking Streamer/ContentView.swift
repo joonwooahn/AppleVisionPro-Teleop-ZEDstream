@@ -7,7 +7,7 @@ struct ContentView: View {
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissWindow) var dismissWindow
     @State private var serverIP: String = ""
-    @State private var showVideo: Bool = false
+    @State private var showVideo: Bool = true
     @State private var streamMode: String = UserDefaults.standard.string(forKey: "stream_mode") ?? "mjpeg"
     @State private var detectedIP: String = ""
     var body: some View {
@@ -31,19 +31,11 @@ struct ContentView: View {
                 TextField("Enter Jetson IP (for ZED stream)", text: $serverIP)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 420)
-                Picker("Mode", selection: $streamMode) {
-                    Text("WebRTC").tag("webrtc")
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 120)
-                Button("Preview ZED Stream") {
-                    showVideo.toggle()
-                    if !serverIP.isEmpty {
-                        UserDefaults.standard.set(serverIP, forKey: "server_ip")
+                    .onChange(of: serverIP) { _, newValue in
+                        if !newValue.isEmpty {
+                            UserDefaults.standard.set(newValue, forKey: "server_ip")
+                        }
                     }
-                    UserDefaults.standard.set(streamMode, forKey: "stream_mode")
-                }
-                .buttonStyle(.borderedProminent)
             }
             .font(.title3)
             .padding(.top, 8)
@@ -65,12 +57,17 @@ struct ContentView: View {
                     .padding(.vertical, 12)
                     .padding(.horizontal, 4)
             }
-            .disabled(showVideo == false)
+            .disabled(serverIP.isEmpty)
             
         }
         .padding(32)
         .onAppear {
             detectJetsonIP()
+            // Auto-save settings on app start
+            if !serverIP.isEmpty {
+                UserDefaults.standard.set(serverIP, forKey: "server_ip")
+            }
+            UserDefaults.standard.set("webrtc", forKey: "stream_mode")
         }
     }
     
