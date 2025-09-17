@@ -7,7 +7,7 @@ struct ContentView: View {
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissWindow) var dismissWindow
     @State private var serverIP: String = ""
-    @State private var showVideo: Bool = true
+    @State private var showVideo: Bool = false
     @State private var streamMode: String = UserDefaults.standard.string(forKey: "stream_mode") ?? "mjpeg"
     @State private var detectedIP: String = ""
     var body: some View {
@@ -48,8 +48,12 @@ struct ContentView: View {
                 
             Button {
                 Task {
-                    // WebRTC mode: don't open immersive space - just show preview
-                    // User can view ZED stream in the preview window
+                    // Activate ZED stream preview
+                    showVideo = true
+                    if !serverIP.isEmpty {
+                        UserDefaults.standard.set(serverIP, forKey: "server_ip")
+                    }
+                    UserDefaults.standard.set("webrtc", forKey: "stream_mode")
                 }
             } label: {
                 Text("Start")
