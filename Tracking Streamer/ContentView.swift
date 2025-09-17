@@ -23,14 +23,14 @@ struct ContentView: View {
                 .font(.largeTitle.weight(.medium))
             
             // Auto-detect Jetson IP (assuming same subnet)
-            Text("Detected Jetson Orin IP at RLWRLD: \(detectedIP)")
-                .font(.title2)
-                .foregroundColor(.secondary)
-            
             HStack(alignment: .center, spacing: 12) {
-                TextField("Enter Jetson IP (for ZED stream)", text: $serverIP)
+                Text("Detected Jetson Orin IP at RLWRLD: \(detectedIP)")
+                    .font(.title2)
+                    .foregroundColor(.secondary)
+                
+                TextField("Enter Jetson IP", text: $serverIP)
                     .textFieldStyle(.roundedBorder)
-                    .frame(width: 420)
+                    .frame(width: 140)
                     .onChange(of: serverIP) { _, newValue in
                         if !newValue.isEmpty {
                             UserDefaults.standard.set(newValue, forKey: "server_ip")
@@ -59,7 +59,7 @@ struct ContentView: View {
                 Text("Start")
                     .font(.largeTitle)
                     .padding(.vertical, 12)
-                    .padding(.horizontal, 4)
+                    .padding(.horizontal, 60)
             }
             .disabled(serverIP.isEmpty)
             
