@@ -203,6 +203,7 @@ class HandTrackingServiceProvider: Handtracking_HandTrackingServiceProvider {
         print("hey...")
         // Example task to simulate sending hand tracking data.
         // In a real application, you would replace this with actual data collection and streaming.
+        let sendResponse = context.sendResponse
         let task = eventLoop.scheduleRepeatedAsyncTask(initialDelay: .milliseconds(10), delay: .milliseconds(10)) { task -> EventLoopFuture<Void> in
 //            var handUpdate = Handtracking_HandUpdate()
             
@@ -210,7 +211,7 @@ class HandTrackingServiceProvider: Handtracking_HandTrackingServiceProvider {
             print("sending...")
             
             // Send the update to the client.
-            return context.sendResponse(recent_hand).map { _ in }
+            return sendResponse(recent_hand).map { _ in }
         }
 
         // Ensure the task is cancelled when the client disconnects or the stream is otherwise closed.
