@@ -46,7 +46,12 @@ struct 👁️GazeTrackingSystem: System {
         let gazeOrigin = deviceAnchor.originFromAnchorTransform.columns.3.xyz
         // 시선 방향을 head의 회전에 따라 계산
         let forwardVector = SIMD3<Float>(0, 0, -1) // 로컬 forward 방향
-        let gazeDirection = deviceAnchor.originFromAnchorTransform.upperLeft3x3 * forwardVector
+        let rotationMatrix = simd_float3x3(
+            deviceAnchor.originFromAnchorTransform.columns.0.xyz,
+            deviceAnchor.originFromAnchorTransform.columns.1.xyz,
+            deviceAnchor.originFromAnchorTransform.columns.2.xyz
+        )
+        let gazeDirection = rotationMatrix * forwardVector
         
         // 디버그: 시선 정보 출력
         print("[Gaze] Origin: \(gazeOrigin), Direction: \(gazeDirection)")
