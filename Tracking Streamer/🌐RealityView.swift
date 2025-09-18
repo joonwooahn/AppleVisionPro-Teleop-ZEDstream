@@ -14,14 +14,14 @@ struct 🌐RealityView: View {
         RealityView { content in
             // Create a video panel anchored to the user's head, 1.0 m in front
             let headAnchor = AnchorEntity(.head)
-            let planeMesh = MeshResource.generatePlane(width: 1.5, height: 0.9)
+            let planeMesh = MeshResource.generatePlane(width: 1.20, height: 0.675)
             var material = UnlitMaterial()
             material.color = .init(tint: .black)
             let panel = ModelEntity(mesh: planeMesh, materials: [material])
             panel.position = [0, -0.1, -0.83]  // 아래로 이동 (Y축 -0.1)
             
             // 레이캐스팅을 위해 충돌 컴포넌트 추가
-            let collisionShape = ShapeResource.generateBox(width: 1.5, height: 0.9, depth: 0.01)
+            let collisionShape = ShapeResource.generateBox(width: 1.20, height: 0.675, depth: 0.01)
             panel.components.set(CollisionComponent(shapes: [collisionShape]))
             panel.components.set(InputTargetComponent())
             
