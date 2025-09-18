@@ -16,6 +16,10 @@ struct VisionProTeleopApp: App {
                     // 앱이 포그라운드로 올 때
                     print("앱이 포그라운드로 복귀 중...")
                     appModel.resumeTracking()
+                    // 포그라운드 복귀 시 서버 재시작
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        appModel.startserver()
+                    }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.willTerminateNotification)) { _ in
                     // 앱이 완전히 종료될 때

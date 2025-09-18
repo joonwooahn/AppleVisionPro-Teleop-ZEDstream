@@ -48,6 +48,7 @@ class 🥽AppModel: ObservableObject {
 
     // Prevent duplicate gRPC server starts (port 12345 bind errors)
     static var grpcServerStarted = false
+    static var grpcServer: GRPC.Server? = nil
 
 }
 
@@ -71,12 +72,26 @@ extension 🥽AppModel {
     }
 
     func startserver() {
-        // Guard against duplicate starts
+        // 기존 서버가 실행 중이면 먼저 정리
         if Self.grpcServerStarted {
-            return
+            print("기존 gRPC 서버 정리 중...")
+            stopServer()
         }
-        Self.grpcServerStarted = true
-        Task { startServer() }
+        
+        // 잠시 대기 후 새 서버 시작
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            Self.grpcServerStarted = true
+            Task { startServer() }
+        }
+    }
+    
+    func stopServer() {
+        if let server = Self.grpcServer {
+            print("gRPC 서버 종료 중...")
+            server.close()
+            Self.grpcServer = nil
+        }
+        Self.grpcServerStarted = false
     }
     
     
@@ -227,18 +242,30 @@ func startServer() {
         server.map {
             $0.channel.localAddress
         }.whenSuccess { address in
-            // Server started successfully
+            print("gRPC 서버가 성공적으로 시작됨: \(address)")
+            Task { @MainActor in
+                🥽AppModel.grpcServer = try? server.wait()
+            }
         }
         
-        //         Wait on the server's `onClose` future to stop the program from exiting.
+        server.whenFailure { error in
+            print("gRPC 서버 시작 실패: \(error)")
+            Task { @MainActor in
+                🥽AppModel.grpcServerStarted = false
+            }
+        }
+        
+        // Wait on the server's `onClose` future to stop the program from exiting.
         do {
             _ = try server.flatMap { $0.onClose }.wait()
         } catch {
-            // Server wait failed
+            print("gRPC 서버 대기 실패: \(error)")
         }
+        
         // Mark as stopped on exit
         Task { @MainActor in
             🥽AppModel.grpcServerStarted = false
+            🥽AppModel.grpcServer = nil
         }
     }
 }
@@ -322,11 +349,7 @@ extension 🥽AppModel {
         session.stop()
         
         // gRPC 서버 종료
-        if Self.grpcServerStarted {
-            print("gRPC 서버 종료 중...")
-            Self.grpcServerStarted = false
-            // 서버 종료는 비동기적으로 처리되므로 여기서는 플래그만 설정
-        }
+        stopServer()
         
         print("모든 추적 서비스 종료 완료")
     }
