@@ -52,7 +52,8 @@ struct 👁️GazeTrackingSystem: System {
             deviceAnchor.originFromAnchorTransform.columns.1.xyz,
             deviceAnchor.originFromAnchorTransform.columns.2.xyz
         )
-        let gazeDirection = rotationMatrix * forwardVector
+        // 방향을 반대로 하고 움직임을 줄임
+        let gazeDirection = -(rotationMatrix * forwardVector) * 0.3
         
         // 디버그: 시선 정보 출력
         print("[Gaze] Origin: \(gazeOrigin), Direction: \(gazeDirection)")
@@ -117,9 +118,9 @@ struct 👁️GazeTrackingSystem: System {
                     
                     print("[Gaze] Manual calc - intersection: (\(intersectionX), \(intersectionY), \(panelZ))")
                     
-                    // 패널 크기를 더 크게 조정하여 head 위치를 고려
-                    let panelWidth: Float = 1.0  // 패널 너비를 더 크게
-                    let panelHeight: Float = 0.8  // 패널 높이를 더 크게
+                    // 패널 크기를 원래 크기로 조정
+                    let panelWidth: Float = 0.6  // 패널 너비의 절반 (1.20/2)
+                    let panelHeight: Float = 0.3375  // 패널 높이의 절반 (0.675/2)
                     
                     print("[Gaze] Manual calc - checking bounds: |\(intersectionX)| <= \(panelWidth), |\(intersectionY - panelCenterY)| <= \(panelHeight)")
                     
