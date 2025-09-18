@@ -22,19 +22,20 @@ struct 🌐RealityView: View {
             var material = UnlitMaterial()
             material.color = .init(tint: .black)
             let panel = ModelEntity(mesh: planeMesh, materials: [material])
-            panel.position = [0, -0.1, -0.79]  // 아래로 이동 (Y축 -0.1)
+            panel.position = [0, -0.1, -0.83]  // 아래로 이동 (Y축 -0.1)
             headAnchor.addChild(panel)
             content.add(headAnchor)
             self.videoPlaneEntity = panel
-        } attachments: {
-            Attachment(id: Self.attachmentID) {
-                if isLoading {
-                    Text("Loading...")
-                        .font(.largeTitle)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.black.opacity(0.7))
-                        .cornerRadius(10)
+            
+            // Create loading text texture
+            if isLoading {
+                let loadingText = "Loading..."
+                let textImage = createTextImage(text: loadingText, size: CGSize(width: 400, height: 100))
+                if let cgImage = textImage.cgImage,
+                   let texture = try? TextureResource.generate(from: cgImage, options: .init(semantic: .color)) {
+                    var loadingMaterial = UnlitMaterial()
+                    loadingMaterial.color = .init(tint: .white, texture: .init(texture))
+                    panel.model?.materials = [loadingMaterial]
                 }
             }
         }
@@ -69,6 +70,31 @@ struct 🌐RealityView: View {
         // WebRTC는 WKWebView로 처리하므로 immersive 패널에서는 MJPEG만 렌더링
     }
     static let attachmentID: String = "resultLabel"
+    
+    private func createTextImage(text: String, size: CGSize) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { context in
+            // Black background
+            UIColor.black.setFill()
+            context.fill(CGRect(origin: .zero, size: size))
+            
+            // White text
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 40, weight: .bold),
+                .foregroundColor: UIColor.white
+            ]
+            
+            let textSize = text.size(withAttributes: attributes)
+            let textRect = CGRect(
+                x: (size.width - textSize.width) / 2,
+                y: (size.height - textSize.height) / 2,
+                width: textSize.width,
+                height: textSize.height
+            )
+            
+            text.draw(in: textRect, withAttributes: attributes)
+        }
+    }
 }
 
 
