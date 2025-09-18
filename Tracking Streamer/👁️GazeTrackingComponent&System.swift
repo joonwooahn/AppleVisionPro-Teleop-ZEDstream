@@ -48,8 +48,15 @@ struct 👁️GazeTrackingSystem: System {
 
         // 2. 레이캐스팅(Ray Casting) 수행
         // 시선 방향으로 광선을 쏘아, 가상 공간의 객체와 처음 충돌하는 지점을 찾습니다.
-        let raycastRequest = RaycastRequest(from: gazeOrigin, direction: gazeDirection, query: .nearest, mask: .all)
-        if let result = context.scene.raycast(request: raycastRequest).first {
+        let rayEnd = gazeOrigin + gazeDirection * 10.0  // 10미터 거리까지 레이캐스팅
+        
+        if let result = context.scene.raycast(
+            from: gazeOrigin, 
+            to: rayEnd, 
+            query: .nearest, 
+            mask: .all, 
+            relativeTo: nil
+        ).first {
             
             // 3. 엔티티 위치 업데이트
             // 찾은 충돌 지점의 위치로 모든 엔티티를 이동시킵니다.
