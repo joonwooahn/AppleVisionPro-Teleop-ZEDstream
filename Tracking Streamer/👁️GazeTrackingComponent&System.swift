@@ -95,8 +95,9 @@ struct 👁️GazeTrackingSystem: System {
             
             // 레이캐스팅이 실패하면 수동으로 ZED 패널과의 교점 계산
             let panelZ: Float = -0.83
+            let panelCenterY: Float = -0.1  // 패널 중심 Y 위치
             print("[Gaze] Manual calc - gazeOrigin: \(gazeOrigin), gazeDirection: \(gazeDirection)")
-            print("[Gaze] Manual calc - panelZ: \(panelZ), gazeOrigin.z: \(gazeOrigin.z)")
+            print("[Gaze] Manual calc - panelZ: \(panelZ), panelCenterY: \(panelCenterY), gazeOrigin.z: \(gazeOrigin.z)")
             
             if gazeDirection.z != 0 {
                 let t = (panelZ - gazeOrigin.z) / gazeDirection.z
@@ -112,9 +113,9 @@ struct 👁️GazeTrackingSystem: System {
                     let panelWidth: Float = 0.6  // 패널 너비의 절반 (1.20/2)
                     let panelHeight: Float = 0.3375  // 패널 높이의 절반 (0.675/2)
                     
-                    print("[Gaze] Manual calc - checking bounds: |\(intersectionX)| <= \(panelWidth), |\(intersectionY - (-0.1))| <= \(panelHeight)")
+                    print("[Gaze] Manual calc - checking bounds: |\(intersectionX)| <= \(panelWidth), |\(intersectionY - panelCenterY)| <= \(panelHeight)")
                     
-                    if abs(intersectionX) <= panelWidth && abs(intersectionY - (-0.1)) <= panelHeight {
+                    if abs(intersectionX) <= panelWidth && abs(intersectionY - panelCenterY) <= panelHeight {
                         print("[Gaze] Manual calculation hit at: (\(intersectionX), \(intersectionY), \(panelZ))")
                         for entity in entities {
                             entity.position = [intersectionX, intersectionY, panelZ + 0.01]
