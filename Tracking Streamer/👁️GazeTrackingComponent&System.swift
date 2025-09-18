@@ -54,7 +54,7 @@ struct 👁️GazeTrackingSystem: System {
         let rayEnd = gazeOrigin + gazeDirection * 10.0  // 10미터 거리까지 레이캐스팅
         
         // 여러 레이캐스팅 방법 시도
-        var hitResult: RaycastResult? = nil
+        var hitResult: Entity? = nil
         
         // 1. 기본 레이캐스팅 시도
         if let result = context.scene.raycast(
@@ -84,9 +84,9 @@ struct 👁️GazeTrackingSystem: System {
         // 3. 결과 처리
         if let result = hitResult {
             // 디버그: 레이캐스팅 결과 출력
-            print("[Gaze] Raycast hit at: \(result.position)")
+            print("[Gaze] Raycast hit entity: \(result)")
             
-            // 엔티티 위치 업데이트
+            // 엔티티 위치 업데이트 (충돌한 엔티티의 위치 사용)
             for entity in entities {
                 entity.position = result.position
             }
