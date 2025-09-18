@@ -1,7 +1,7 @@
 import SwiftUI
 import RealityKit
 import ARKit
-import GRPC
+@preconcurrency import GRPC
 import NIO
 
 struct Skeleton {
