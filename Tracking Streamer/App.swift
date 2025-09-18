@@ -15,8 +15,6 @@ struct VisionProTeleopApp: App {
     init() {
         🧑HeadTrackingComponent.registerComponent()
         🧑HeadTrackingSystem.registerSystem()
-        👁️GazeTrackingComponent.registerComponent()
-        👁️GazeTrackingSystem.registerSystem()
     }
 }
 

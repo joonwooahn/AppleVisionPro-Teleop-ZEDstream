@@ -29,15 +29,6 @@ struct 🌐RealityView: View {
             content.add(headAnchor)
             self.videoPlaneEntity = panel
             
-            // Create gaze indicator (small red dot) with gaze tracking component
-            let gazeSphere = MeshResource.generateSphere(radius: 0.005)
-            var gazeMaterial = UnlitMaterial()
-            gazeMaterial.color = .init(tint: .red)
-            let gazeIndicator = ModelEntity(mesh: gazeSphere, materials: [gazeMaterial])
-            gazeIndicator.position = [0, 0, -0.83]  // 패널 앞쪽에 위치
-            gazeIndicator.components.set(👁️GazeTrackingComponent())  // 시선 추적 컴포넌트 추가
-            headAnchor.addChild(gazeIndicator)
-            
             // Create loading text texture
             if isLoading {
                 let loadingText = "Loading..."
