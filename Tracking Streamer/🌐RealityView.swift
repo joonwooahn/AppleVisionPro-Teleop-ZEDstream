@@ -21,9 +21,11 @@ struct 🌐RealityView: View {
             var material = UnlitMaterial()
             material.color = .init(tint: .black)
             let panel = ModelEntity(mesh: planeMesh, materials: [material])
+            panel.position = [0, 0, -0.5]  // 더 가까이 (0.5m)
             headAnchor.addChild(panel)
             content.add(headAnchor)
             self.videoPlaneEntity = panel
+            print("[Immersive] Panel created: \(panel.name), position: \(panel.position), scale: \(panel.scale)")
         } attachments: {
             Attachment(id: Self.attachmentID) {
             }
@@ -57,7 +59,7 @@ struct 🌐RealityView: View {
                     var mat = UnlitMaterial()
                     mat.color = .init(tint: .white, texture: .init(tex))
                     plane.model?.materials = [mat]
-                    print("[Immersive] Texture updated successfully: \(image.size)")
+                    print("[Immersive] Texture updated successfully: \(image.size), plane position: \(plane.position)")
                 } else {
                     print("[Immersive] Failed to generate texture")
                 }
