@@ -45,7 +45,6 @@ class 🥽AppModel: ObservableObject {
     private let handTracking = HandTrackingProvider()
     private let worldTracking = WorldTrackingProvider()
     private let sceneReconstruction = SceneReconstructionProvider()
-    private let eyeTracking = EyeTrackingProvider()
 
     // Prevent duplicate gRPC server starts (port 12345 bind errors)
     static var grpcServerStarted = false
@@ -62,9 +61,8 @@ extension 🥽AppModel {
         Task {
             @MainActor in
             do {
-                try await self.session.run([self.handTracking, self.worldTracking, self.sceneReconstruction, self.eyeTracking])
+                try await self.session.run([self.handTracking, self.worldTracking, self.sceneReconstruction])
                 await self.processHandUpdates();
-                await self.processEyeUpdates();
             } catch {
                 print(error)
             }
@@ -178,17 +176,6 @@ extension 🥽AppModel {
         }
     }
     
-    private func processEyeUpdates() async {
-        for await update in self.eyeTracking.anchorUpdates {
-            let eyeAnchor = update.anchor
-            
-            DispatchQueue.main.async {
-                // 시선 원점과 방향 업데이트
-                DataManager.shared.latestEyeTrackingData.gazeOrigin = eyeAnchor.gazeOrigin
-                DataManager.shared.latestEyeTrackingData.gazeDirection = eyeAnchor.gazeDirection
-            }
-        }
-    }
 }
 
 
