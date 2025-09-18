@@ -31,17 +31,11 @@ class VisionProStreamer:
         stream_thread.daemon = True  # 메인 프로세스 종료 시 함께 종료
         stream_thread.start() 
         
-        # 연결 타임아웃 설정 (30초)
-        timeout = 30
-        start_time = time.time()
-        while self.latest is None and (time.time() - start_time) < timeout:
+        # 연결될 때까지 무한 대기
+        print("Vision Pro 연결 대기 중...")
+        while self.latest is None: 
             time.sleep(0.1)
-        
-        if self.latest is None:
-            print(f"경고: {timeout}초 내에 Vision Pro 연결에 실패했습니다.")
-            print("Vision Pro가 켜져 있고 같은 네트워크에 연결되어 있는지 확인하세요.")
-        else:
-            print("Vision Pro 연결 성공!") 
+        print("Vision Pro 연결 성공!") 
 
 
     def stream(self): 
