@@ -253,7 +253,9 @@ func startServer() {
             print("[gRPC] Server wait failed: \(error)")
         }
         // Mark as stopped on exit
-        🥽AppModel.grpcServerStarted = false
+        Task { @MainActor in
+            🥽AppModel.grpcServerStarted = false
+        }
     }
 }
 
