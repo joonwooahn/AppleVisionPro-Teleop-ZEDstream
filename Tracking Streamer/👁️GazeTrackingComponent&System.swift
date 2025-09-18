@@ -45,6 +45,9 @@ struct 👁️GazeTrackingSystem: System {
         // deviceAnchor에서 시선의 원점(origin)과 방향(direction)을 얻습니다.
         let gazeOrigin = deviceAnchor.originFromAnchorTransform.columns.3.xyz
         let gazeDirection = deviceAnchor.originFromAnchorTransform.columns.2.xyz * -1 // Z축의 반대 방향이 정면입니다.
+        
+        // 디버그: 시선 정보 출력
+        print("[Gaze] Origin: \(gazeOrigin), Direction: \(gazeDirection)")
 
         // 2. 레이캐스팅(Ray Casting) 수행
         // 시선 방향으로 광선을 쏘아, 가상 공간의 객체와 처음 충돌하는 지점을 찾습니다.
@@ -58,11 +61,16 @@ struct 👁️GazeTrackingSystem: System {
             relativeTo: nil
         ).first {
             
+            // 디버그: 레이캐스팅 결과 출력
+            print("[Gaze] Raycast hit at: \(result.position)")
+            
             // 3. 엔티티 위치 업데이트
             // 찾은 충돌 지점의 위치로 모든 엔티티를 이동시킵니다.
             for entity in entities {
                 entity.position = result.position
             }
+        } else {
+            print("[Gaze] No raycast hit")
         }
     }
 }
