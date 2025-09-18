@@ -24,6 +24,12 @@ class VisionProStreamer:
         self.axis_transform = YUP2ZUP
         
         print(f"Vision Pro 연결 시도 중... (IP: {self.ip})")
+        
+        # 먼저 기본 연결 테스트
+        if not self.test_connection():
+            print(f"경고: {self.ip}:12345에 연결할 수 없습니다.")
+            print("Vision Pro가 켜져 있고 같은 네트워크에 연결되어 있는지 확인하세요.")
+        
         self.start_streaming()
 
     def start_streaming(self): 
@@ -31,10 +37,14 @@ class VisionProStreamer:
         stream_thread.daemon = True  # 메인 프로세스 종료 시 함께 종료
         stream_thread.start() 
         
-        # 연결될 때까지 무한 대기
+        # 연결될 때까지 무한 대기 (더 자세한 피드백)
         print("Vision Pro 연결 대기 중...")
+        wait_count = 0
         while self.latest is None: 
-            time.sleep(0.1)
+            time.sleep(0.5)
+            wait_count += 1
+            if wait_count % 10 == 0:  # 5초마다 상태 출력
+                print(f"연결 대기 중... ({wait_count * 0.5:.1f}초 경과)")
         print("Vision Pro 연결 성공!") 
 
 
@@ -59,7 +69,25 @@ class VisionProStreamer:
                 ]
                 
                 print(f"Vision Pro 연결 시도 중... (IP: {self.ip}:12345)")
-                with grpc.insecure_channel(f"{self.ip}:12345", options=options) as channel:
+                
+                # 연결 타임아웃 설정
+                channel_options = options + [
+                    ('grpc.initial_reconnect_backoff_ms', 1000),
+                    ('grpc.max_reconnect_backoff_ms', 10000),
+                    ('grpc.enable_retries', 1),
+                    ('grpc.max_receive_message_length', 4 * 1024 * 1024),
+                    ('grpc.max_send_message_length', 4 * 1024 * 1024)
+                ]
+                
+                with grpc.insecure_channel(f"{self.ip}:12345", options=channel_options) as channel:
+                    # 채널 상태 확인
+                    try:
+                        grpc.channel_ready_future(channel).result(timeout=10)
+                        print("gRPC 채널 연결 확인됨")
+                    except grpc.RpcError as e:
+                        print(f"채널 연결 실패: {e}")
+                        raise e
+                    
                     stub = handtracking_pb2_grpc.HandTrackingServiceStub(channel)
                     responses = stub.StreamHandUpdates(request)
                     
@@ -131,6 +159,19 @@ class VisionProStreamer:
         while self.latest is None:
             time.sleep(0.1)
         print("연결 재시작 완료!")
+    
+    def test_connection(self):
+        """연결 테스트"""
+        try:
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(5)
+            result = sock.connect_ex((self.ip, 12345))
+            sock.close()
+            return result == 0
+        except Exception as e:
+            print(f"연결 테스트 실패: {e}")
+            return False
     
 
 if __name__ == "__main__": 
