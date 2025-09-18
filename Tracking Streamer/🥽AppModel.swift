@@ -24,8 +24,6 @@ struct HandTrackingData {
 struct EyeTrackingData {
     var gazeOrigin: simd_float3 = simd_float3(0, 0, 0)
     var gazeDirection: simd_float3 = simd_float3(0, 0, -1)
-    var isLeftEyeOpen: Bool = true
-    var isRightEyeOpen: Bool = true
 }
 
 class DataManager {
@@ -188,10 +186,6 @@ extension 🥽AppModel {
                 // 시선 원점과 방향 업데이트
                 DataManager.shared.latestEyeTrackingData.gazeOrigin = eyeAnchor.gazeOrigin
                 DataManager.shared.latestEyeTrackingData.gazeDirection = eyeAnchor.gazeDirection
-                
-                // 눈 깜빡임 상태 업데이트
-                DataManager.shared.latestEyeTrackingData.isLeftEyeOpen = eyeAnchor.isLeftEyeOpen
-                DataManager.shared.latestEyeTrackingData.isRightEyeOpen = eyeAnchor.isRightEyeOpen
             }
         }
     }
