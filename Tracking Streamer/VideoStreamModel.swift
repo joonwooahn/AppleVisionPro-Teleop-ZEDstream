@@ -24,17 +24,21 @@ class VideoStreamModel: ObservableObject {
     private func fetchImage(from url: URL) {
         URLSession.shared.dataTask(with: url) { data, response, error in
             if let error = error {
+                print("[DEBUG] Image fetch error: \(error)")
                 return
             }
             
             guard let data = data else {
+                print("[DEBUG] No data received")
                 return
             }
             
             guard let image = UIImage(data: data) else {
+                print("[DEBUG] Failed to create UIImage from data (size: \(data.count) bytes)")
                 return
             }
             
+            print("[DEBUG] Successfully received image: \(image.size), data size: \(data.count) bytes")
             DispatchQueue.main.async {
                 self.image = image
             }
