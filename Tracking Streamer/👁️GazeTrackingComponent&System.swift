@@ -53,6 +53,10 @@ struct 👁️GazeTrackingSystem: System {
         // 시선 방향으로 광선을 쏘아, 가상 공간의 객체와 처음 충돌하는 지점을 찾습니다.
         let rayEnd = gazeOrigin + gazeDirection * 10.0  // 10미터 거리까지 레이캐스팅
         
+        // 여러 레이캐스팅 방법 시도
+        var hitResult: RaycastResult? = nil
+        
+        // 1. 기본 레이캐스팅 시도
         if let result = context.scene.raycast(
             from: gazeOrigin, 
             to: rayEnd, 
@@ -60,17 +64,55 @@ struct 👁️GazeTrackingSystem: System {
             mask: .all, 
             relativeTo: nil
         ).first {
-            
+            hitResult = result
+        }
+        
+        // 2. 더 긴 거리로 레이캐스팅 시도
+        if hitResult == nil {
+            let longRayEnd = gazeOrigin + gazeDirection * 50.0  // 50미터까지
+            if let result = context.scene.raycast(
+                from: gazeOrigin, 
+                to: longRayEnd, 
+                query: .nearest, 
+                mask: .all, 
+                relativeTo: nil
+            ).first {
+                hitResult = result
+            }
+        }
+        
+        // 3. 결과 처리
+        if let result = hitResult {
             // 디버그: 레이캐스팅 결과 출력
             print("[Gaze] Raycast hit at: \(result.position)")
             
-            // 3. 엔티티 위치 업데이트
-            // 찾은 충돌 지점의 위치로 모든 엔티티를 이동시킵니다.
+            // 엔티티 위치 업데이트
             for entity in entities {
                 entity.position = result.position
             }
         } else {
-            print("[Gaze] No raycast hit")
+            print("[Gaze] No raycast hit - trying manual calculation")
+            
+            // 레이캐스팅이 실패하면 수동으로 ZED 패널과의 교점 계산
+            let panelZ: Float = -0.83
+            if gazeDirection.z != 0 {
+                let t = (panelZ - gazeOrigin.z) / gazeDirection.z
+                if t > 0 {
+                    let intersectionX = gazeOrigin.x + t * gazeDirection.x
+                    let intersectionY = gazeOrigin.y + t * gazeDirection.y
+                    
+                    // 패널 크기 내에 있는지 확인
+                    let panelWidth: Float = 0.6
+                    let panelHeight: Float = 0.3375
+                    
+                    if abs(intersectionX) <= panelWidth && abs(intersectionY - (-0.1)) <= panelHeight {
+                        print("[Gaze] Manual calculation hit at: (\(intersectionX), \(intersectionY), \(panelZ))")
+                        for entity in entities {
+                            entity.position = [intersectionX, intersectionY, panelZ + 0.01]
+                        }
+                    }
+                }
+            }
         }
     }
 }
