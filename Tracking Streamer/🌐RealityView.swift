@@ -17,7 +17,7 @@ struct 🌐RealityView: View {
 
             // Create a video panel anchored to the user's head, 1.0 m in front
             let headAnchor = AnchorEntity(.head)
-            let planeMesh = MeshResource.generatePlane(width: 1.20, height: 0.675)
+            let planeMesh = MeshResource.generatePlane(width: 1.56, height: 0.878)
             var material = UnlitMaterial()
             material.color = .init(tint: .black)
             let panel = ModelEntity(mesh: planeMesh, materials: [material])
