@@ -108,9 +108,9 @@ struct 👁️GazeTrackingSystem: System {
                     
                     print("[Gaze] Manual calc - intersection: (\(intersectionX), \(intersectionY), \(panelZ))")
                     
-                    // 패널 크기 내에 있는지 확인
-                    let panelWidth: Float = 0.6
-                    let panelHeight: Float = 0.3375
+                    // 패널 크기 내에 있는지 확인 (더 큰 범위로 설정)
+                    let panelWidth: Float = 1.0  // 더 넓게
+                    let panelHeight: Float = 0.6  // 더 높게
                     
                     print("[Gaze] Manual calc - checking bounds: |\(intersectionX)| <= \(panelWidth), |\(intersectionY - (-0.1))| <= \(panelHeight)")
                     
