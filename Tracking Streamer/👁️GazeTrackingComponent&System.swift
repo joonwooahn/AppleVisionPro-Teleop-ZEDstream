@@ -44,14 +44,10 @@ struct 👁️GazeTrackingSystem: System {
         // 1. 시선(Gaze) 데이터 가져오기
         // deviceAnchor에서 시선의 원점(origin)과 방향(direction)을 얻습니다.
         let gazeOrigin = deviceAnchor.originFromAnchorTransform.columns.3.xyz
-        // 시선 방향을 head의 회전에 따라 계산
-        let forwardVector = SIMD3<Float>(0, 0, -1) // 로컬 forward 방향
-        let rotationMatrix = simd_float3x3(
-            deviceAnchor.originFromAnchorTransform.columns.0.xyz,
-            deviceAnchor.originFromAnchorTransform.columns.1.xyz,
-            deviceAnchor.originFromAnchorTransform.columns.2.xyz
-        )
-        let gazeDirection = rotationMatrix * forwardVector
+        
+        // 더 간단한 접근: 패널 중심을 향한 방향 계산
+        let panelCenter = SIMD3<Float>(0, -0.1, -0.83)
+        let gazeDirection = normalize(panelCenter - gazeOrigin)
         
         // 디버그: 시선 정보 출력
         print("[Gaze] Origin: \(gazeOrigin), Direction: \(gazeDirection)")
