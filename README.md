@@ -1,44 +1,68 @@
 VisionProTeleop
 ===========
 
-![CleanShot 2024-03-03 at 13 55 11@2x](https://github.com/Improbable-AI/VisionProTeleop/assets/68195716/d87a906c-ccf3-4e2d-bd25-a66dc0df803b)
-
-
-
 Wanna use your new Apple Vision Pro to control your robot?  Wanna record how you navigate and manipulate the world to train your robot? 
-This VisionOS app and python library streams your Head + Wrist + Hand Tracking result via gRPC over a WiFi network, so any robots connected to the same wifi network can subscribe and use. 
+This VisionOS app and python library streams your Head + Wrist + Hand Tracking result via gRPC over a WiFi network, so any robots connected to the same wifi network can subscribe and use.
+
+**NEW FEATURES:**
+- 🎥 **Real-time ZED Camera Streaming**: Stream ZED camera footage from PC to Apple Vision Pro via WebRTC
+- 🔄 **Improved Connection Stability**: Enhanced gRPC server restart logic and automatic reconnection
+- 📊 **Connection Monitoring**: Real-time connection status monitoring and debugging tools
+- 🛠️ **Better Error Handling**: Robust error handling with automatic retry mechanisms 
 
 > **For a more detailed explanation, check out this short [paper](./assets/short_paper_new.pdf).**
 
 
 ## How to Use
 
+### Prerequisites
+
+1. **Install Required Libraries**
+   ```bash
+   pip install -r /home/nvidia/avp_rby1_orca_teleop/VisionProTeleop/avp_stream/requirements-webrtc.txt
+   ```
+
+2. **Network Setup**
+   - Ensure your PC and Apple Vision Pro are connected to the same WiFi network
+   - Note your PC's IP address for streaming setup
+
 If you use this repository in your work, consider citing:
 
-    @software{park2024avp,
-        title={Using Apple Vision Pro to Train and Control Robots},
-        author={Park, Younghyo and Agrawal, Pulkit},
-        year={2024},
-        url = {https://github.com/Improbable-AI/VisionProTeleop},
-    }
 
 ### Step 1. Install the app on Vision Pro 
 
 ![](assets/visionpro_main_jw.png)
 
-This app is now officially on VisionOS App Store! You can search for **[Tracking Streamer](https://apps.apple.com/us/app/tracking-streamer/id6478969032)** from the App Store and install the app. 
-
-If you want to play around with the app, you can build/install the app yourself too. To learn how to do that, take a look at this [documentation](/how_to_install.md). This requires (a) Apple Developer Account, (b) Vision Pro Developer Strap, and (c) a Mac with Xcode installed. 
+If you want to play around with the app, you can build/install the app yourself too. To learn how to do that, take a look at this [documentation](/how_to_install.md). This requires (a) Apple Developer Account, (b) Vision Pro Developer Strap (2025.09 기준 wifi로도 가능), and (c) a Mac with Xcode installed. 
 
 
-### Step 2. Run the app on Vision Pro 
+### Step 2. Start ZED Camera Streaming on PC
 
-After installation, click on the app on Vision Pro and click `Start`. That's it!  Vision Pro is now streaming the tracking data over your wifi network. 
+Before running the Vision Pro app, start the ZED camera streaming server on your PC:
 
-**Tip**  Remember the IP address before you click start; you need to specify this IP address to subscribe to the data. Once you click start, the app will immediately enter into pass-through mode. Click on the digital crown to stop streaming.  
+```bash
+pkill -f webrtc_server.py || true; python3 /home/nvidia/avp_rby1_orca_teleop/VisionProTeleop/avp_stream/webrtc_server.py --host 0.0.0.0 --port 8086 --device 0 --width 1280 --height 720 --fps 15 | cat
+```
+
+**Parameters:**
+- `--host 0.0.0.0`: Allow connections from any IP
+- `--port 8086`: WebRTC streaming port
+- `--device 0`: ZED camera device index
+- `--width 1280 --height 720`: Stream resolution
+- `--fps 15`: Frames per second
+
+### Step 3. Run the app on Vision Pro 
+
+After installation, click on the app on Vision Pro and click `Start`. That's it!  Vision Pro is now streaming the tracking data over your wifi network AND receiving ZED camera feed from your PC.
+
+**Tip**  Remember the IP address before you click start; you need to specify this IP address to subscribe to the data. Once you click start, the app will immediately enter into pass-through mode with ZED camera overlay. Click on the digital crown to stop streaming.
+
+**Connection Troubleshooting:**
+- If connection fails after using the crown button, the app now automatically retries connection
+- Use the connection monitor to debug issues: `python3 /home/nvidia/avp_rby1_orca_teleop/VisionProTeleop/avp_stream/connection_monitor.py`  
 
 
-### Step 3. Receive the stream from anywhere
+### Step 4. Receive the stream from anywhere
 
 The following python package allows you to receive the data stream from any device that's connected to the same WiFi network. First, install the package: 
 
@@ -50,12 +74,36 @@ Then, add this code snippet to any of your projects you were developing:
 
 ```python
 from avp_stream import VisionProStreamer
-avp_ip = "10.31.181.201"   # example IP 
+avp_ip = "172.30.1.44"   # example IP 
 s = VisionProStreamer(ip = avp_ip, record = True)
 
 while True:
     r = s.latest
     print(r['head'], r['right_wrist'], r['right_fingers'])
+```
+
+### Enhanced Connection Features
+
+The updated VisionProStreamer now includes improved connection stability:
+
+```python
+from avp_stream import VisionProStreamer
+
+# Create streamer with retry configuration
+streamer = VisionProStreamer(
+    ip='172.30.1.44', 
+    record=True,
+    max_retries=10,      # Maximum retry attempts
+    retry_delay=2        # Delay between retries (seconds)
+)
+
+# Check connection status
+if streamer.is_connected():
+    print("✅ Connected successfully!")
+    latest_data = streamer.get_latest()
+else:
+    print("❌ Connection failed - retrying...")
+    streamer.reconnect()  # Manual reconnection
 ```
 
 
@@ -101,26 +149,51 @@ Refer to the image below to see how the axis are defined for your head, wrist, a
 
 ![](assets/hand_skeleton_convention.png)
 
-Refer to the image above to see what order the joints are represented in each hand's skeleton. 
+Refer to the image above to see what order the joints are represented in each hand's skeleton.
 
+## Troubleshooting & Monitoring
 
-## Acknowledgements 
+### Connection Monitor
 
-We acknowledge support from Hyundai Motor Company and ARO MURI grant number W911NF-23-1-0277. 
-
-<!-- Misc 
-
-If you want to modify the message type, feel free to modify the `.proto` file. You can recompile the gRPC proto file as follows: 
-
-#### for Python
+Use the built-in connection monitor to debug connectivity issues:
 
 ```bash
-python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. handtracking.proto
+# Basic monitoring
+python3 /home/nvidia/avp_rby1_orca_teleop/VisionProTeleop/avp_stream/connection_monitor.py
+
+# Custom IP and settings
+python3 /home/nvidia/avp_rby1_orca_teleop/VisionProTeleop/avp_stream/connection_monitor.py --ip 172.30.1.44 --port 12345 --interval 1
 ```
 
+The monitor provides real-time status:
+- ✅ **Connected**: Network and gRPC server both working
+- ⚠️ **Partial**: Network OK but gRPC server not running
+- ❌ **Failed**: Network connectivity issues
 
-#### for Swift
-```bash
-protoc handtracking.proto --swift_out=. --grpc-swift_out=.
-```
-After you recompile it, make sure you add it to the Xcode so the app can use the latest version of the swift_proto file.  -->
+### Common Issues & Solutions
+
+1. **Connection fails after crown button exit**
+   - **Solution**: The app now automatically retries connection when returning from background
+   - **Manual fix**: Restart the Vision Pro app
+
+2. **ZED camera not streaming**
+   - **Check**: Ensure WebRTC server is running on PC
+   - **Verify**: Camera permissions and device index (usually 0)
+   - **Test**: Check if camera works with other applications
+
+3. **gRPC connection timeout**
+   - **Check**: Both devices on same WiFi network
+   - **Verify**: Correct IP address (check Vision Pro settings)
+   - **Monitor**: Use connection monitor tool for detailed diagnostics
+
+4. **Port binding errors**
+   - **Solution**: Updated server automatically handles port cleanup
+   - **Manual fix**: Restart the application
+
+### System Requirements
+
+- **Apple Vision Pro**: visionOS 1.0+
+- **PC**: Python 3.8+, OpenCV, ZED SDK
+- **Network**: Stable WiFi connection (5GHz recommended)
+- **Hardware**: ZED camera (for video streaming feature) 
+
