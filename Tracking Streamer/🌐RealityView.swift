@@ -72,17 +72,11 @@ struct 🌐RealityView: View {
                 }
             }
             for await img in videoModel.$image.values {
-                guard let plane = self.videoPlaneEntity, let image = img, let cg = image.cgImage else { 
-                    print("[DEBUG] Missing components: plane=\(plane != nil), image=\(image != nil), cg=\(cg != nil)")
-                    continue 
-                }
+                guard let plane = self.videoPlaneEntity, let image = img, let cg = image.cgImage else { continue }
                 if let tex = try? TextureResource.generate(from: cg, options: .init(semantic: .color)) {
                     var mat = UnlitMaterial()
                     mat.color = .init(tint: .white, texture: .init(tex))
                     plane.model?.materials = [mat]
-                    print("[DEBUG] Texture updated successfully: \(image.size)")
-                } else {
-                    print("[DEBUG] Failed to generate texture from image")
                 }
             }
         }
