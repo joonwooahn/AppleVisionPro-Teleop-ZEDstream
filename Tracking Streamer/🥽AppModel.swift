@@ -308,24 +308,17 @@ func createMatrix4x4(from jointMatrix: simd_float4x4) -> Handtracking_Matrix4x4 
 extension 🥽AppModel {
     
     func pauseTracking() {
-        print("ARKit 세션 일시정지 중...")
-        session.pause()
+        print("앱이 백그라운드로 이동 중...")
+        // ARKit은 자동으로 백그라운드에서 일시정지됨
     }
     
     func resumeTracking() {
-        print("ARKit 세션 재개 중...")
-        Task {
-            do {
-                try await session.run([handTracking, worldTracking, sceneReconstruction])
-                print("ARKit 세션 재개 완료")
-            } catch {
-                print("ARKit 세션 재개 실패: \(error)")
-            }
-        }
+        print("앱이 포그라운드로 복귀 중...")
+        // ARKit은 자동으로 포그라운드에서 재개됨
     }
     
     func stopTracking() {
-        print("ARKit 세션 완전 종료 중...")
+        print("앱 완전 종료 중...")
         session.stop()
         
         // gRPC 서버 종료
