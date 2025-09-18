@@ -30,8 +30,6 @@ class VisionProStreamer:
         stream_thread.start() 
         while self.latest is None: 
             pass 
-        print(' == DATA IS FLOWING IN! ==')
-        print('Ready to start streaming.') 
 
 
     def stream(self): 
@@ -59,7 +57,6 @@ class VisionProStreamer:
                     self.latest = transformations 
 
         except Exception as e:
-            print(f"An error occurred: {e}")
             pass 
 
     def get_latest(self): 
@@ -75,4 +72,4 @@ if __name__ == "__main__":
     while True: 
 
         latest = streamer.get_latest()
-        print(latest)
+        # latest 변수 사용 (디버그용 출력 제거)
