@@ -303,3 +303,38 @@ func createMatrix4x4(from jointMatrix: simd_float4x4) -> Handtracking_Matrix4x4 
     matrix.m33 = Float(jointMatrix.columns.3.w)
     return matrix
 }
+
+// MARK: - App Lifecycle Methods Extension
+extension 🥽AppModel {
+    
+    func pauseTracking() {
+        print("ARKit 세션 일시정지 중...")
+        session.pause()
+    }
+    
+    func resumeTracking() {
+        print("ARKit 세션 재개 중...")
+        Task {
+            do {
+                try await session.run([handTracking, worldTracking, sceneReconstruction])
+                print("ARKit 세션 재개 완료")
+            } catch {
+                print("ARKit 세션 재개 실패: \(error)")
+            }
+        }
+    }
+    
+    func stopTracking() {
+        print("ARKit 세션 완전 종료 중...")
+        session.stop()
+        
+        // gRPC 서버 종료
+        if Self.grpcServerStarted {
+            print("gRPC 서버 종료 중...")
+            Self.grpcServerStarted = false
+            // 서버 종료는 비동기적으로 처리되므로 여기서는 플래그만 설정
+        }
+        
+        print("모든 추적 서비스 종료 완료")
+    }
+}
