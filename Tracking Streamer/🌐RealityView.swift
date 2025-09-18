@@ -64,18 +64,12 @@ struct 🌐RealityView: View {
         .task {
             // Start snapshot polling inside immersive space for mjpeg or webrtc modes
             let mode = UserDefaults.standard.string(forKey: "stream_mode") ?? "mjpeg"
-            print("[Immersive] Stream mode: \(mode)")
             if let ip = UserDefaults.standard.string(forKey: "server_ip") {
-                print("[Immersive] Server IP: \(ip)")
                 if mode == "mjpeg", let url = URL(string: "http://\(ip):8080/snapshot.jpg") {
-                    print("[Immersive] Starting MJPEG polling: \(url)")
                     videoModel.start(url: url, fps: 15)
                 } else if mode == "webrtc", let url = URL(string: "http://\(ip):8086/snapshot.jpg") {
-                    print("[Immersive] Starting WebRTC snapshot polling: \(url)")
                     videoModel.start(url: url, fps: 15)
                 }
-            } else {
-                print("[Immersive] ERROR: No server IP found in UserDefaults")
             }
             for await img in videoModel.$image.values {
                 guard let plane = self.videoPlaneEntity, let image = img, let cg = image.cgImage else { continue }

@@ -67,7 +67,6 @@ extension 🥽AppModel {
     func startserver() {
         // Guard against duplicate starts
         if Self.grpcServerStarted {
-            print("[gRPC] Server already running; skip start")
             return
         }
         Self.grpcServerStarted = true
@@ -106,10 +105,8 @@ extension 🥽AppModel {
     
     func processReconstructionUpdates() async {
         for await update in sceneReconstruction.anchorUpdates {
-            print("reconstruction update")
             let meshAnchor = update.anchor
             let mesh_description = meshAnchor.geometry.description
-            print(mesh_description)
         }
     }
 
@@ -120,8 +117,6 @@ extension 🥽AppModel {
         guard worldTracking.state == .running else { return }
         
         let deviceAnchor = worldTracking.queryDeviceAnchor(atTimestamp: CACurrentMediaTime())
-        print(" *** device tracking running ")
-//        print(deviceAnchor?.originFromAnchorTransform)
         guard let deviceAnchor, deviceAnchor.isTracked else { return }
         DataManager.shared.latestHandTrackingData.Head = deviceAnchor.originFromAnchorTransform
             }
@@ -129,14 +124,11 @@ extension 🥽AppModel {
     private func processHandUpdates() async {
         for await update in self.handTracking.anchorUpdates {
             let handAnchor = update.anchor
-            print("processHandUpates is running.")
             switch handAnchor.chirality {
             case .left:
                 DispatchQueue.main.async {
                     DataManager.shared.latestHandTrackingData.leftWrist = handAnchor.originFromAnchorTransform
-                    print(handAnchor.originFromAnchorTransform)
                     
-
                     let jointTypes: [HandSkeleton.JointName] = [
                         .wrist,
                         .thumbKnuckle, .thumbIntermediateBase, .thumbIntermediateTip, .thumbTip,
@@ -152,15 +144,11 @@ extension 🥽AppModel {
                         }
                         DataManager.shared.latestHandTrackingData.leftSkeleton.joints[index] = joint.anchorFromJointTransform
                     }
-                    
-                    print("Updated left hand skeleton")
-                    // Repeat for right hand and other fingers as needed
                 }
 
             case .right:
                 DispatchQueue.main.async {
                     DataManager.shared.latestHandTrackingData.rightWrist = handAnchor.originFromAnchorTransform
-                    print(handAnchor.originFromAnchorTransform)
                     
                     let jointTypes: [HandSkeleton.JointName] = [
                         .wrist,
@@ -175,17 +163,11 @@ extension 🥽AppModel {
                         guard let joint = handAnchor.handSkeleton?.joint(jointType), joint.isTracked else {
                             continue
                         }
-                        print(index)
                         DataManager.shared.latestHandTrackingData.rightSkeleton.joints[index] = joint.anchorFromJointTransform
                     }
-                    
-                    print("Updated right hand skeleton")
                 }
             }
-            
         }
-        
-        
     }
 }
 
@@ -200,14 +182,10 @@ class HandTrackingServiceProvider: Handtracking_HandTrackingServiceProvider {
         context: StreamingResponseCallContext<Handtracking_HandUpdate>
     ) -> EventLoopFuture<GRPCStatus> {
         let eventLoop = context.eventLoop
-        print("hey...")
         // Example task to simulate sending hand tracking data.
         // In a real application, you would replace this with actual data collection and streaming.
         let task = eventLoop.scheduleRepeatedAsyncTask(initialDelay: .milliseconds(10), delay: .milliseconds(10)) { task -> EventLoopFuture<Void> in
-//            var handUpdate = Handtracking_HandUpdate()
-            
             let recent_hand = fill_handUpdate()
-            print("sending...")
             
             // Send the update to the client.
             return context.sendResponse(recent_hand).map { _ in }
@@ -242,14 +220,14 @@ func startServer() {
         server.map {
             $0.channel.localAddress
         }.whenSuccess { address in
-            print("server started on \(address!) \(address!.port!) ")
+            // Server started successfully
         }
         
         //         Wait on the server's `onClose` future to stop the program from exiting.
         do {
             _ = try server.flatMap { $0.onClose }.wait()
         } catch {
-            print("[gRPC] Server wait failed: \(error)")
+            // Server wait failed
         }
         // Mark as stopped on exit
         Task { @MainActor in
