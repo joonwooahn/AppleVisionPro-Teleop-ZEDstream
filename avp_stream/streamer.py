@@ -41,9 +41,10 @@ class VisionProStreamer:
     def stream(self): 
         request = handtracking_pb2.HandUpdate()
         retry_count = 0
-        max_retries = 5
+        max_retries = 10  # 재시도 횟수 증가
+        consecutive_failures = 0
         
-        while retry_count < max_retries:
+        while True:  # 무한 루프로 변경
             try:
                 # gRPC 연결 옵션 설정
                 options = [
@@ -52,12 +53,18 @@ class VisionProStreamer:
                     ('grpc.keepalive_permit_without_calls', True),
                     ('grpc.http2.max_pings_without_data', 0),
                     ('grpc.http2.min_time_between_pings_ms', 10000),
-                    ('grpc.http2.min_ping_interval_without_data_ms', 300000)
+                    ('grpc.http2.min_ping_interval_without_data_ms', 300000),
+                    ('grpc.max_receive_message_length', 4 * 1024 * 1024),  # 4MB
+                    ('grpc.max_send_message_length', 4 * 1024 * 1024)  # 4MB
                 ]
                 
+                print(f"Vision Pro 연결 시도 중... (IP: {self.ip}:12345)")
                 with grpc.insecure_channel(f"{self.ip}:12345", options=options) as channel:
                     stub = handtracking_pb2_grpc.HandTrackingServiceStub(channel)
                     responses = stub.StreamHandUpdates(request)
+                    
+                    print("gRPC 스트림 시작됨")
+                    consecutive_failures = 0  # 성공하면 연속 실패 카운트 리셋
                     
                     for response in responses:
                         transformations = {
@@ -75,25 +82,24 @@ class VisionProStreamer:
                         if self.record: 
                             self.recording.append(transformations)
                         self.latest = transformations 
-                        retry_count = 0  # 성공하면 재시도 카운트 리셋
                         
             except grpc.RpcError as e:
-                print(f"gRPC 연결 오류 (시도 {retry_count + 1}/{max_retries}): {e}")
-                retry_count += 1
-                if retry_count < max_retries:
-                    wait_time = min(2 ** retry_count, 30)  # 지수 백오프, 최대 30초
-                    print(f"{wait_time}초 후 재연결 시도...")
-                    time.sleep(wait_time)
-                else:
-                    print("최대 재시도 횟수 초과. 연결을 포기합니다.")
-                    break
+                consecutive_failures += 1
+                print(f"gRPC 연결 오류 (연속 실패 {consecutive_failures}회): {e}")
+                
+                # 연결 상태를 None으로 설정하여 재연결 필요함을 알림
+                self.latest = None
+                
+                # 지수 백오프 적용
+                wait_time = min(2 ** min(consecutive_failures, 6), 60)  # 최대 60초
+                print(f"{wait_time}초 후 재연결 시도...")
+                time.sleep(wait_time)
+                
             except Exception as e:
-                print(f"예상치 못한 오류: {e}")
-                retry_count += 1
-                if retry_count < max_retries:
-                    time.sleep(5)
-                else:
-                    break 
+                consecutive_failures += 1
+                print(f"예상치 못한 오류 (연속 실패 {consecutive_failures}회): {e}")
+                self.latest = None
+                time.sleep(5) 
 
     def get_latest(self): 
         return self.latest
@@ -111,6 +117,20 @@ class VisionProStreamer:
         while not self.is_connected() and (time.time() - start_time) < timeout:
             time.sleep(0.1)
         return self.is_connected()
+    
+    def restart_connection(self):
+        """연결 재시작"""
+        print("연결 재시작 중...")
+        self.latest = None
+        # 새로운 스트리밍 스레드 시작
+        stream_thread = Thread(target=self.stream)
+        stream_thread.daemon = True
+        stream_thread.start()
+        
+        # 연결될 때까지 대기
+        while self.latest is None:
+            time.sleep(0.1)
+        print("연결 재시작 완료!")
     
 
 if __name__ == "__main__": 
