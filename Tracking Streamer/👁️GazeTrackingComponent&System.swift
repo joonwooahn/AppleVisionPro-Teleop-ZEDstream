@@ -95,23 +95,38 @@ struct 👁️GazeTrackingSystem: System {
             
             // 레이캐스팅이 실패하면 수동으로 ZED 패널과의 교점 계산
             let panelZ: Float = -0.83
+            print("[Gaze] Manual calc - gazeOrigin: \(gazeOrigin), gazeDirection: \(gazeDirection)")
+            print("[Gaze] Manual calc - panelZ: \(panelZ), gazeOrigin.z: \(gazeOrigin.z)")
+            
             if gazeDirection.z != 0 {
                 let t = (panelZ - gazeOrigin.z) / gazeDirection.z
+                print("[Gaze] Manual calc - t: \(t)")
+                
                 if t > 0 {
                     let intersectionX = gazeOrigin.x + t * gazeDirection.x
                     let intersectionY = gazeOrigin.y + t * gazeDirection.y
                     
+                    print("[Gaze] Manual calc - intersection: (\(intersectionX), \(intersectionY), \(panelZ))")
+                    
                     // 패널 크기 내에 있는지 확인
                     let panelWidth: Float = 0.6
                     let panelHeight: Float = 0.3375
+                    
+                    print("[Gaze] Manual calc - checking bounds: |\(intersectionX)| <= \(panelWidth), |\(intersectionY - (-0.1))| <= \(panelHeight)")
                     
                     if abs(intersectionX) <= panelWidth && abs(intersectionY - (-0.1)) <= panelHeight {
                         print("[Gaze] Manual calculation hit at: (\(intersectionX), \(intersectionY), \(panelZ))")
                         for entity in entities {
                             entity.position = [intersectionX, intersectionY, panelZ + 0.01]
                         }
+                    } else {
+                        print("[Gaze] Manual calc - outside panel bounds")
                     }
+                } else {
+                    print("[Gaze] Manual calc - t <= 0, no intersection")
                 }
+            } else {
+                print("[Gaze] Manual calc - gazeDirection.z is 0")
             }
         }
     }
