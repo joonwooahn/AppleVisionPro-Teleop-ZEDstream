@@ -1,4 +1,4 @@
-VisionProTeleop
+VisionProTeleop with ZED camera streaming
 ===========
 
 Wanna use your new Apple Vision Pro to control your robot?  Wanna record how you navigate and manipulate the world to train your robot? 
@@ -33,7 +33,9 @@ If you use this repository in your work, consider citing:
 
 ![](assets/visionpro_main_jw.png)
 
-If you want to play around with the app, you can build/install the app yourself too. To learn how to do that, take a look at this [documentation](/how_to_install.md). This requires (a) Apple Developer Account, (b) Vision Pro Developer Strap (2025.09 기준 wifi로도 가능), and (c) a Mac with Xcode installed. 
+If you want to play around with the app, you can build/install the app yourself too. To learn how to do that, take a look at this [documentation](/how_to_install.md). 
+This requires (a) Apple Developer Account, (b) Vision Pro Developer Strap (also connected only with wifi check at 2025.09), and (c) a Mac with Xcode installed. 
+A Detail connection information is in https://developer.apple.com/documentation/Xcode/running-your-app-in-simulator-or-on-a-device#Connect-real-devices-to-your-Mac.
 
 
 ### Step 2. Start ZED Camera Streaming on PC
@@ -196,4 +198,24 @@ The monitor provides real-time status:
 - **PC**: Python 3.8+, OpenCV, ZED SDK
 - **Network**: Stable WiFi connection (5GHz recommended)
 - **Hardware**: ZED camera (for video streaming feature) 
+
+## Acknowledgements
+
+This project is based on the original [VisionProTeleop](https://github.com/Improbable-AI/VisionProTeleop) by Improbable AI, which provides the core Apple Vision Pro head, wrist, and finger tracking functionality via gRPC streaming.
+
+**Original VisionProTeleop Citation:**
+```
+@software{park2024avp,
+    title={Using Apple Vision Pro to Train and Control Robots},
+    author={Park, Younghyo and Agrawal, Pulkit},
+    year={2024},
+    url = {https://github.com/Improbable-AI/VisionProTeleop},
+}
+```
+
+**Our Enhancements:**
+- Real-time ZED camera streaming via WebRTC
+- Improved connection stability and automatic reconnection
+- Enhanced error handling and monitoring tools
+- Extended documentation and troubleshooting guides
 
