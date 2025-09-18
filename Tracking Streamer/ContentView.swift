@@ -8,10 +8,8 @@ struct ContentView: View {
     @Environment(\.dismissWindow) var dismissWindow
     @StateObject private var appModel = 🥽AppModel()
     @State private var serverIP: String = ""
-    @State private var showVideo: Bool = false
     @State private var streamMode: String = UserDefaults.standard.string(forKey: "stream_mode") ?? "mjpeg"
     @State private var detectedIP: String = ""
-    @State private var previewReloadKey: Int = 0
     var body: some View {
         VStack(spacing: 32) {
             HStack(spacing: 28) {
@@ -21,58 +19,44 @@ struct ContentView: View {
                     .frame(width: 1200)
                     .clipShape(.rect(cornerRadius: 24))
             }
-            if !showVideo {
-                Text("You're on IP address [\(getIPAddress())]")
-                    .font(.largeTitle.weight(.medium))
+            Text("You're on IP address [\(getIPAddress())]")
+                .font(.largeTitle.weight(.medium))
+            
+            // Auto-detect Jetson IP (assuming same subnet)
+            HStack(alignment: .center, spacing: 12) {
+                Text("Detected Jetson Orin IP at RLWRLD: ")
+                    .font(.title2)
+                    .foregroundColor(.secondary)
                 
-                // Auto-detect Jetson IP (assuming same subnet)
-                HStack(alignment: .center, spacing: 12) {
-                    Text("Detected Jetson Orin IP at RLWRLD: ")
-                        .font(.title2)
-                        .foregroundColor(.secondary)
-                    
-                    TextField("Enter Jetson IP", text: $serverIP)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 140)
-                        .onChange(of: serverIP) { _, newValue in
-                            if !newValue.isEmpty {
-                                UserDefaults.standard.set(newValue, forKey: "server_ip")
-                            }
+                TextField("Enter Jetson IP", text: $serverIP)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 140)
+                    .onChange(of: serverIP) { _, newValue in
+                        if !newValue.isEmpty {
+                            UserDefaults.standard.set(newValue, forKey: "server_ip")
                         }
-                }
-                .font(.title3)
-                .padding(.top, 8)
+                    }
             }
-
-            if showVideo, !serverIP.isEmpty, streamMode == "webrtc" {
-                WebRTCPreview(server: "\(serverIP):8086", reloadKey: previewReloadKey)
-                    .frame(width: 1400, height: 800)
-                    .glassBackgroundEffect()
-            }
+            .font(.title3)
+            .padding(.top, 8)
                 
             Button {
                 Task {
-                    // Activate ZED stream preview and auto-connect
-                    showVideo = true
-                    previewReloadKey &+= 1
+                    // Save settings
                     if !serverIP.isEmpty {
                         UserDefaults.standard.set(serverIP, forKey: "server_ip")
                     }
                     UserDefaults.standard.set("webrtc", forKey: "stream_mode")
-                    
-                    // Hide IP-related texts after start
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        // This will be handled by the showVideo state
-                    }
 
-                    // Ensure gRPC server and tracking start even without immersive space
+                    // Ensure gRPC server and tracking start
                     appModel.startserver()
                     appModel.run()
                     Task { await appModel.processDeviceAnchorUpdates() }
                     Task(priority: .low) { await appModel.processReconstructionUpdates() }
 
-                    // Also open immersive space to guarantee ARKit providers run
+                    // Open immersive space and hide main window
                     await self.openImmersiveSpace(id: "immersiveSpace")
+                    await self.dismissWindow()
                 }
             } label: {
                 Text("Start")
