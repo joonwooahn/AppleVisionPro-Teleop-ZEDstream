@@ -22,14 +22,26 @@ class VisionProStreamer:
         self.recording = [] 
         self.latest = None 
         self.axis_transform = YUP2ZUP
+        
+        print(f"Vision Pro 연결 시도 중... (IP: {self.ip})")
         self.start_streaming()
 
     def start_streaming(self): 
-
         stream_thread = Thread(target = self.stream)
+        stream_thread.daemon = True  # 메인 프로세스 종료 시 함께 종료
         stream_thread.start() 
-        while self.latest is None: 
-            pass 
+        
+        # 연결 타임아웃 설정 (30초)
+        timeout = 30
+        start_time = time.time()
+        while self.latest is None and (time.time() - start_time) < timeout:
+            time.sleep(0.1)
+        
+        if self.latest is None:
+            print(f"경고: {timeout}초 내에 Vision Pro 연결에 실패했습니다.")
+            print("Vision Pro가 켜져 있고 같은 네트워크에 연결되어 있는지 확인하세요.")
+        else:
+            print("Vision Pro 연결 성공!") 
 
 
     def stream(self): 
@@ -94,6 +106,17 @@ class VisionProStreamer:
         
     def get_recording(self): 
         return self.recording
+    
+    def is_connected(self):
+        """연결 상태 확인"""
+        return self.latest is not None
+    
+    def wait_for_connection(self, timeout=30):
+        """연결이 될 때까지 대기"""
+        start_time = time.time()
+        while not self.is_connected() and (time.time() - start_time) < timeout:
+            time.sleep(0.1)
+        return self.is_connected()
     
 
 if __name__ == "__main__": 
