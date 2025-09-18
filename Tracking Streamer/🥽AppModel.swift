@@ -106,7 +106,7 @@ extension 🥽AppModel {
     func processReconstructionUpdates() async {
         for await update in sceneReconstruction.anchorUpdates {
             let meshAnchor = update.anchor
-            let mesh_description = meshAnchor.geometry.description
+            _ = meshAnchor.geometry.description
         }
     }
 
