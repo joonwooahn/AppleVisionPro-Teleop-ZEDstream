@@ -44,7 +44,9 @@ struct 👁️GazeTrackingSystem: System {
         // 1. 시선(Gaze) 데이터 가져오기
         // deviceAnchor에서 시선의 원점(origin)과 방향(direction)을 얻습니다.
         let gazeOrigin = deviceAnchor.originFromAnchorTransform.columns.3.xyz
-        let gazeDirection = deviceAnchor.originFromAnchorTransform.columns.2.xyz * -1 // Z축의 반대 방향이 정면입니다.
+        // 시선 방향을 head의 회전에 따라 계산
+        let forwardVector = SIMD3<Float>(0, 0, -1) // 로컬 forward 방향
+        let gazeDirection = deviceAnchor.originFromAnchorTransform.upperLeft3x3 * forwardVector
         
         // 디버그: 시선 정보 출력
         print("[Gaze] Origin: \(gazeOrigin), Direction: \(gazeDirection)")
