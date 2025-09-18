@@ -8,6 +8,7 @@ struct 🌐RealityView: View {
     var model: 🥽AppModel
     @StateObject private var videoModel = VideoStreamModel()
     @State private var videoPlaneEntity: ModelEntity? = nil
+    @State private var isLoading: Bool = true
 
     var body: some View {
         RealityView { content, attachments in
@@ -21,12 +22,20 @@ struct 🌐RealityView: View {
             var material = UnlitMaterial()
             material.color = .init(tint: .black)
             let panel = ModelEntity(mesh: planeMesh, materials: [material])
-            panel.position = [0, -0.1, -0.73]  // 아래로 이동 (Y축 -0.1)
+            panel.position = [0, -0.1, -0.79]  // 아래로 이동 (Y축 -0.1)
             headAnchor.addChild(panel)
             content.add(headAnchor)
             self.videoPlaneEntity = panel
         } attachments: {
             Attachment(id: Self.attachmentID) {
+                if isLoading {
+                    Text("Loading...")
+                        .font(.largeTitle)
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.black.opacity(0.7))
+                        .cornerRadius(10)
+                }
             }
         }
         .task { self.model.run() }
@@ -49,6 +58,10 @@ struct 🌐RealityView: View {
                     var mat = UnlitMaterial()
                     mat.color = .init(tint: .white, texture: .init(tex))
                     plane.model?.materials = [mat]
+                    // 첫 번째 이미지가 로드되면 로딩 상태 해제
+                    if isLoading {
+                        isLoading = false
+                    }
                 }
             }
         }
