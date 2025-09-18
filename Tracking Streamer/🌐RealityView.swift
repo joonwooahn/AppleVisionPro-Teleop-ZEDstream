@@ -21,7 +21,7 @@ struct 🌐RealityView: View {
             var material = UnlitMaterial()
             material.color = .init(tint: .black)
             let panel = ModelEntity(mesh: planeMesh, materials: [material])
-            panel.position = [0, 0, -0.9]  // 적당한 거리 (0.9m)
+            panel.position = [0, -0.2, -0.73]  // 아래로 이동 (Y축 -0.2)
             headAnchor.addChild(panel)
             content.add(headAnchor)
             self.videoPlaneEntity = panel
