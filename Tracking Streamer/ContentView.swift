@@ -56,7 +56,7 @@ struct ContentView: View {
 
                     // Open immersive space and hide main window
                     await self.openImmersiveSpace(id: "immersiveSpace")
-                    await self.dismissWindow()
+                    self.dismissWindow()
                 }
             } label: {
                 Text("Start")
