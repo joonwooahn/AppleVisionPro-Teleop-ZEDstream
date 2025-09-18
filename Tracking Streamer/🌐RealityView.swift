@@ -11,11 +11,7 @@ struct 🌐RealityView: View {
     @State private var isLoading: Bool = true
 
     var body: some View {
-        RealityView { content, attachments in
-            let resultLabelEntity = attachments.entity(for: Self.attachmentID)!
-            resultLabelEntity.components.set(🧑HeadTrackingComponent())
-            resultLabelEntity.name = 🧩Name.resultLabel
-
+        RealityView { content in
             // Create a video panel anchored to the user's head, 1.0 m in front
             let headAnchor = AnchorEntity(.head)
             let planeMesh = MeshResource.generatePlane(width: 1.20, height: 0.675)
@@ -69,7 +65,6 @@ struct 🌐RealityView: View {
         // Removed WebRTC WKWebView overlay to avoid black covering in immersive
         // WebRTC는 WKWebView로 처리하므로 immersive 패널에서는 MJPEG만 렌더링
     }
-    static let attachmentID: String = "resultLabel"
     
     private func createTextImage(text: String, size: CGSize) -> UIImage {
         let renderer = UIGraphicsImageRenderer(size: size)
