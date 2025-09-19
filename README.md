@@ -1,6 +1,10 @@
 VisionProTeleop with ZED camera streaming
 ===========
 
+![](assets/visionpro_main_jw_2.png)
+
+![](assets/visionpro_zed_jw.png)
+
 Based on the original [VisionProTeleop](https://github.com/Improbable-AI/VisionProTeleop), this repository enhanced version adds ZED camera streaming capabilities. The original implementation enables Apple Vision Pro to connect with PC via WiFi network, allowing PC to receive head, wrist, fingers, and other tracking data from Apple Vision Pro. This extends that functionality by adding real-time streaming of ZED (2i) camera images from PC to Apple Vision Pro using WebRTC technology.
 
 **NEW FEATURES:**
@@ -28,8 +32,6 @@ If you use this repository in your work, consider citing:
 
 ### Step 1. Install the app on Vision Pro 
 
-![](assets/visionpro_main_jw_2.png)
-
 If you want to play around with the app, you can build/install the app yourself too. To learn how to do that, take a look at this [documentation](/how_to_install.md). 
 This requires (a) Apple Developer Account, (b) Vision Pro Developer Strap (also connected only with wifi check at 2025.09), and (c) a Mac with Xcode installed. 
 A Detail connection information bewteen MAC and Apple Vision Pro without using Vision Pro Developer Strap is introduced in https://developer.apple.com/documentation/Xcode/running-your-app-in-simulator-or-on-a-device#Connect-real-devices-to-your-Mac.
@@ -54,8 +56,6 @@ pkill -f webrtc_server.py || true; python3 /home/nvidia/avp_rby1_orca_teleop/Vis
 ### Step 3. Run the app on Vision Pro 
 
 After installation, click on the app on Vision Pro and click `Start`. That's it!  Vision Pro is now streaming the tracking data over your wifi network AND receiving ZED camera feed from your PC.
-
-![](assets/visionpro_zed_jw.png)
 
 **Tip**  Remember the IP address before you click start; you need to specify this IP address to subscribe to the data. Once you click start, the app will immediately enter into pass-through mode with ZED camera overlay. Click on the digital crown to stop streaming.
 
@@ -189,19 +189,13 @@ The monitor provides real-time status:
 
 This project is based on the original [VisionProTeleop](https://github.com/Improbable-AI/VisionProTeleop) by Improbable AI, which provides the core Apple Vision Pro head, wrist, and finger tracking functionality via gRPC streaming.
 
-**Original VisionProTeleop Citation:**
-```
-@software{park2024avp,
-    title={Using Apple Vision Pro to Train and Control Robots},
-    author={Park, Younghyo and Agrawal, Pulkit},
-    year={2024},
-    url = {https://github.com/Improbable-AI/VisionProTeleop},
-}
-```
-
 **Our Enhancements:**
 - Real-time ZED camera streaming via WebRTC
 - Improved connection stability and automatic reconnection
 - Enhanced error handling and monitoring tools
 - Extended documentation and troubleshooting guides
+
+## Real Robot Implementation
+
+For the actual RBY1 robot teleoperation implementation using this Vision Pro setup, please check out the complete repository at [https://github.com/RLWRLD/avp-rby1-orca-teleop](https://github.com/RLWRLD/avp-rby1-orca-teleop).
 
