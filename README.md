@@ -19,6 +19,7 @@ This VisionOS app and python library streams your Head + Wrist + Hand Tracking r
 
 1. **Install Required Libraries**
    ```bash
+   pip install avp_stream
    pip install -r /home/nvidia/avp_rby1_orca_teleop/VisionProTeleop/avp_stream/requirements-webrtc.txt
    ```
 
@@ -31,7 +32,7 @@ If you use this repository in your work, consider citing:
 
 ### Step 1. Install the app on Vision Pro 
 
-![](Tracking Streamer/Supporting files/Assets.xcassets/graph2.imageset/visionpro_main_jw.png)
+![](assets/visionpro_main_jw.png)
 
 If you want to play around with the app, you can build/install the app yourself too. To learn how to do that, take a look at this [documentation](/how_to_install.md). 
 This requires (a) Apple Developer Account, (b) Vision Pro Developer Strap (also connected only with wifi check at 2025.09), and (c) a Mac with Xcode installed. 
@@ -64,13 +65,9 @@ After installation, click on the app on Vision Pro and click `Start`. That's it!
 - Use the connection monitor to debug issues: `python3 /home/nvidia/avp_rby1_orca_teleop/VisionProTeleop/avp_stream/connection_monitor.py`  
 
 
-### Step 4. Receive the stream from anywhere
+### Step 4. Receive the avp traking stream from anywhere
 
-The following python package allows you to receive the data stream from any device that's connected to the same WiFi network. First, install the package: 
 
-```
-pip install avp_stream
-```
 
 Then, add this code snippet to any of your projects you were developing: 
 
@@ -140,18 +137,8 @@ r['left_wrist_roll']: float
 ```
 
 
-### Axis Convention
-
-Refer to the image below to see how the axis are defined for your head, wrist, and fingers. 
-
-![](assets/axis_convention.png)
-
-
-### Hand Skeleton used in VisionOS
-
-![](assets/hand_skeleton_convention.png)
-
-Refer to the image above to see what order the joints are represented in each hand's skeleton.
+### Axis Convention & Hand Skeleton used in VisionOS
+These are refered in https://github.com/Improbable-AI/VisionProTeleop.
 
 ## Troubleshooting & Monitoring
 
