@@ -31,7 +31,7 @@ If you use this repository in your work, consider citing:
 
 ### Step 1. Install the app on Vision Pro 
 
-![](assets/visionpro_main_jw.png)
+![](Tracking Streamer/Supporting files/Assets.xcassets/graph2.imageset/visionpro_main_jw.png)
 
 If you want to play around with the app, you can build/install the app yourself too. To learn how to do that, take a look at this [documentation](/how_to_install.md). 
 This requires (a) Apple Developer Account, (b) Vision Pro Developer Strap (also connected only with wifi check at 2025.09), and (c) a Mac with Xcode installed. 
