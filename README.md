@@ -1,16 +1,13 @@
 VisionProTeleop with ZED camera streaming
 ===========
 
-Based on the original [VisionProTeleop](https://github.com/Improbable-AI/VisionProTeleop), this enhanced version adds ZED camera streaming capabilities. The original implementation enables Apple Vision Pro to connect with PC via WiFi network, allowing PC to receive head, wrist, fingers, and other tracking data from Apple Vision Pro. This repository extends that functionality by adding real-time streaming of ZED (2i) camera images from PC to Apple Vision Pro using WebRTC technology.
+Based on the original [VisionProTeleop](https://github.com/Improbable-AI/VisionProTeleop), this repository enhanced version adds ZED camera streaming capabilities. The original implementation enables Apple Vision Pro to connect with PC via WiFi network, allowing PC to receive head, wrist, fingers, and other tracking data from Apple Vision Pro. This extends that functionality by adding real-time streaming of ZED (2i) camera images from PC to Apple Vision Pro using WebRTC technology.
 
 **NEW FEATURES:**
 - 🎥 **Real-time ZED Camera Streaming**: Stream ZED camera footage from PC to Apple Vision Pro via WebRTC
 - 🔄 **Improved Connection Stability**: Enhanced gRPC server restart logic and automatic reconnection
 - 📊 **Connection Monitoring**: Real-time connection status monitoring and debugging tools
 - 🛠️ **Better Error Handling**: Robust error handling with automatic retry mechanisms 
-
-> **For a more detailed explanation, check out this short [paper](./assets/short_paper_new.pdf).**
-
 
 ## How to Use
 
@@ -31,11 +28,11 @@ If you use this repository in your work, consider citing:
 
 ### Step 1. Install the app on Vision Pro 
 
-![](assets/visionpro_main_jw.png)
+![](assets/visionpro_main_jw_2.png)
 
 If you want to play around with the app, you can build/install the app yourself too. To learn how to do that, take a look at this [documentation](/how_to_install.md). 
 This requires (a) Apple Developer Account, (b) Vision Pro Developer Strap (also connected only with wifi check at 2025.09), and (c) a Mac with Xcode installed. 
-A Detail connection information is in https://developer.apple.com/documentation/Xcode/running-your-app-in-simulator-or-on-a-device#Connect-real-devices-to-your-Mac.
+A Detail connection information bewteen MAC and Apple Vision Pro without using Vision Pro Developer Strap is introduced in https://developer.apple.com/documentation/Xcode/running-your-app-in-simulator-or-on-a-device#Connect-real-devices-to-your-Mac.
 
 
 ### Step 2. Start ZED Camera Streaming on PC
@@ -43,6 +40,7 @@ A Detail connection information is in https://developer.apple.com/documentation/
 Before running the Vision Pro app, start the ZED camera streaming server on your PC:
 
 ```bash
+source /home/nvidia/avp_rby1_orca_teleop/VisionProTeleop/venv/bin/activate
 pkill -f webrtc_server.py || true; python3 /home/nvidia/avp_rby1_orca_teleop/VisionProTeleop/avp_stream/webrtc_server.py --host 0.0.0.0 --port 8086 --device 0 --width 1280 --height 720 --fps 15 | cat
 ```
 
@@ -56,6 +54,8 @@ pkill -f webrtc_server.py || true; python3 /home/nvidia/avp_rby1_orca_teleop/Vis
 ### Step 3. Run the app on Vision Pro 
 
 After installation, click on the app on Vision Pro and click `Start`. That's it!  Vision Pro is now streaming the tracking data over your wifi network AND receiving ZED camera feed from your PC.
+
+![](assets/visionpro_zed_jw.png)
 
 **Tip**  Remember the IP address before you click start; you need to specify this IP address to subscribe to the data. Once you click start, the app will immediately enter into pass-through mode with ZED camera overlay. Click on the digital crown to stop streaming.
 
