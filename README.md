@@ -1,8 +1,7 @@
 VisionProTeleop with ZED camera streaming
 ===========
 
-Wanna use your new Apple Vision Pro to control your robot?  Wanna record how you navigate and manipulate the world to train your robot? 
-This VisionOS app and python library streams your Head + Wrist + Hand Tracking result via gRPC over a WiFi network, so any robots connected to the same wifi network can subscribe and use.
+Based on the original [VisionProTeleop](https://github.com/Improbable-AI/VisionProTeleop), this enhanced version adds ZED camera streaming capabilities. The original implementation enables Apple Vision Pro to connect with PC via WiFi network, allowing PC to receive head, wrist, fingers, and other tracking data from Apple Vision Pro. This repository extends that functionality by adding real-time streaming of ZED (2i) camera images from PC to Apple Vision Pro using WebRTC technology.
 
 **NEW FEATURES:**
 - 🎥 **Real-time ZED Camera Streaming**: Stream ZED camera footage from PC to Apple Vision Pro via WebRTC
